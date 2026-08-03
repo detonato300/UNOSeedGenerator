@@ -45,21 +45,6 @@ body {
     margin-right: auto;
 }
 
-.header select {
-    padding: 8px 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 0.9rem;
-    cursor: pointer;
-}
-
-.header select:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .btn {
     padding: 8px 20px;
     border-radius: 6px;
@@ -100,6 +85,20 @@ body {
     cursor: not-allowed;
 }
 
+.btn-lang {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    min-width: 48px;
+}
+
+.btn-lang:hover {
+    border-color: var(--accent);
+    color: var(--text);
+}
+
 .instruction-bar {
     color: var(--text-muted);
     font-size: 0.9rem;
@@ -110,20 +109,82 @@ body {
     border-left: 3px solid var(--accent);
 }
 
+/* ——— Start Panel (instructions + length buttons) ——— */
+.start-panel {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 24px 20px;
+    margin-bottom: 20px;
+}
+
+.start-panel h2 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: var(--accent);
+}
+
+.start-panel ol {
+    padding-left: 20px;
+    margin-bottom: 16px;
+    line-height: 1.6;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+.start-prompt {
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+.length-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-length {
+    background: var(--surface);
+    color: var(--accent);
+    border-color: var(--accent);
+    padding: 10px 18px;
+    font-size: 0.95rem;
+}
+
+.btn-length:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.start-tip {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 12px;
+    font-size: 0.85rem;
+}
+
 .main-grid {
-    display: grid;
-    grid-template-columns: 120px 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 16px;
     margin-bottom: 20px;
 }
 
 .suit-panel {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .suit-btn {
+    flex: 1;
+    min-width: 80px;
     padding: 14px 8px;
     font-size: 1.5rem;
     border-radius: 10px;
@@ -251,15 +312,63 @@ progress::-moz-progress-bar { background: var(--accent); border-radius: 5px; }
 
 .hidden { display: none !important; }
 
+/* ——— Toggle / Reveal / Round2 Styles ——— */
+.btn-toggle {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px dashed var(--border);
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s ease;
+    width: fit-content;
+}
+.btn-toggle:hover {
+    border-color: var(--accent);
+    color: var(--text);
+}
+.btn-toggle:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-success {
+    background: #2ea043;
+    color: #fff;
+    border-color: #2ea043;
+}
+.btn-success:hover:not(:disabled) {
+    filter: brightness(1.15);
+}
+
+.round2-prompt {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 24px 20px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.round2-prompt p {
+    font-size: 1rem;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+.round2-prompt .btn {
+    font-size: 1rem;
+    padding: 10px 28px;
+}
+
+.salt-field,
+.mnemonic-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
-    .main-grid {
-        grid-template-columns: 1fr;
-    }
-    .suit-panel {
-        flex-direction: row;
-        justify-content: center;
-    }
     .suit-btn {
         padding: 10px 6px;
         font-size: 1.2rem;
@@ -273,6 +382,10 @@ progress::-moz-progress-bar { background: var(--accent); border-radius: 5px; }
     .header h1 {
         font-size: 1.1rem;
         width: 100%;
+    }
+    .btn-length {
+        padding: 8px 14px;
+        font-size: 0.85rem;
     }
 }
 
@@ -291,26 +404,38 @@ progress::-moz-progress-bar { background: var(--accent); border-radius: 5px; }
 <body>
 
 <div class="header">
-    <h1>🧩 Generator Seed</h1>
-    <select id="selectWords">
-        <option value="12">12 słów</option>
-        <option value="15">15 słów</option>
-        <option value="18">18 słów</option>
-        <option value="21">21 słów</option>
-        <option value="24" selected>24 słowa</option>
-    </select>
-    <button id="btnStart" class="btn btn-primary">Start</button>
-    <button id="btnRestart" class="btn btn-danger" disabled>Restart</button>
+    <h1 id="headerTitle"></h1>
+    <button id="btnLangToggle" class="btn btn-lang"></button>
+    <button id="btnRestart" class="btn btn-danger" disabled></button>
 </div>
 
-<div id="instruction" class="instruction-bar">Wybierz długość mnemonica i kliknij Start</div>
+<div id="instruction" class="instruction-bar"></div>
+
+<!-- Start Panel: instructions + length buttons (visible in IDLE state) -->
+<div id="startPanel" class="start-panel">
+    <h2 id="startHeading"></h2>
+    <ol id="startSteps">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ol>
+    <p class="start-prompt" id="startPrompt"></p>
+    <div class="length-buttons">
+        <button class="btn btn-length" data-words="12"></button>
+        <button class="btn btn-length" data-words="15"></button>
+        <button class="btn btn-length" data-words="18"></button>
+        <button class="btn btn-length" data-words="21"></button>
+        <button class="btn btn-length" data-words="24"></button>
+    </div>
+</div>
 
 <div id="mainGrid" class="main-grid hidden">
     <div class="suit-panel">
-        <button class="suit-btn" data-suit="S">♠<br><small>PIK</small></button>
-        <button class="suit-btn" data-suit="H">♥<br><small>KIER</small></button>
-        <button class="suit-btn" data-suit="D">♦<br><small>KARO</small></button>
-        <button class="suit-btn" data-suit="C">♣<br><small>TREF</small></button>
+        <button id="suitBtnC" class="suit-btn" data-suit="C"></button>
+        <button id="suitBtnD" class="suit-btn" data-suit="D"></button>
+        <button id="suitBtnS" class="suit-btn" data-suit="S"></button>
+        <button id="suitBtnH" class="suit-btn" data-suit="H"></button>
     </div>
     <div class="rank-panel">
         <div class="rank-grid-row">
@@ -337,21 +462,33 @@ progress::-moz-progress-bar { background: var(--accent); border-radius: 5px; }
     </div>
 </div>
 
+<!-- Round 2 prompt (hidden by default, shown after 52 cards for 24 words) -->
+<div id="round2Prompt" class="round2-prompt hidden">
+    <p id="round2Text"></p>
+    <button id="btnRound2" class="btn btn-primary"></button>
+</div>
+
 <div class="output-section">
     <div class="output-field">
-        <label for="outputEnt">Entropia (karty)</label>
+        <label for="outputEnt" id="labelEntropy"></label>
         <input id="outputEnt" type="text" readonly placeholder="—">
     </div>
     <div class="output-field">
-        <label for="outputSalt">Salt</label>
+        <button id="btnToggleSalt" class="btn btn-toggle" disabled></button>
+    </div>
+    <div class="salt-field hidden" id="saltField">
+        <label for="outputSalt" id="labelSalt"></label>
         <input id="outputSalt" type="text" readonly placeholder="—">
     </div>
-    <div class="output-field">
-        <label for="outputSeed">Seed (binarny)</label>
+        <div class="output-field">
+        <button id="btnRevealMnemonic" class="btn btn-primary" disabled></button>
+    </div>
+    <div class="output-field hidden" id="binaryMnemonicField">
+        <label for="outputSeed" id="labelBinary"></label>
         <input id="outputSeed" type="text" readonly placeholder="—">
     </div>
-    <div class="output-field">
-        <label for="outputMnemonic">Mnemonic (BIP39)</label>
+    <div class="mnemonic-field hidden" id="mnemonicField">
+        <label for="outputMnemonic" id="labelMnemonic"></label>
         <textarea id="outputMnemonic" readonly placeholder="—" rows="3"></textarea>
     </div>
 </div>
@@ -569,33 +706,191 @@ const BIP39_WORDS = [
 ];
 
 // ============================================================
+// Internationalization (PL / EN)
+// ============================================================
+const I18N = {
+    pl: {
+        title: '🧩 Mnemonic Generator',
+        instructionIdle: 'Wybierz długość mnemonica poniżej, aby rozpocząć.',
+        startHeading: 'INSTRUKCJA',
+        startSteps: [
+            'Przygotuj talię 52 kart.',
+            'Potasuj ją metodą \'riffle shuffle\' co najmniej 7 razy',
+            'Wybierz długość mnemonica jaki chcesz uzyskać',
+            'Klikaj kolejne wylosowane karty zgodnie z poleceniami',
+        ],
+        startPrompt: 'Mnemonic na ile słów?',
+        btn12: '12 słów (128-bit)',
+        btn15: '15 słów (160-bit)',
+        btn18: '18 słów (192-bit)',
+        btn21: '21 słów (224-bit)',
+        btn24: '24 słowa (256-bit)',
+        btnRestart: 'Restart',
+        btnLang: 'EN',
+        pickSuit: 'Wybierz kolor (♠♥♦♣), potem klikaj rangi kart',
+        suitPrefix: 'Kolor',
+        suitSpades: '♠ Pik',
+        suitHearts: '♥ Kier',
+        suitDiamonds: '♦ Karo',
+        suitClubs: '♣ Trefl',
+        suitBtnClubs: '♣<br>Trefl',
+        suitBtnDiamonds: '♦<br>Karo',
+        suitBtnSpades: '♠<br>Pik',
+        suitBtnHearts: '♥<br>Kier',
+        pickSuitFirst: 'Najpierw wybierz kolor!',
+        clickRanks: 'klikaj rangi kart',
+        suitSelected: (suit) => `Kolor: ${suitName(suit)} — klikaj rangi kart`,
+        cardAdded: (name, remaining) => `Dodano ${name}. ${remaining} kart pozostało.`,
+        round2Prompt: '♻️ Wszystkie 52 karty wykorzystane.<br><strong>Potasuj talię ponownie</strong> i wylosuj jeszcze <strong>6 kart</strong>,<br>aby uzyskać pełne 256 bitów entropii dla 24 słów.',
+        btnRound2: 'Potasowałem — kontynuuj',
+        round2Instruction: 'Potasuj talię ponownie i kliknij „Potasowałem — kontynuuj”.',
+        round2Title: 'Runda 2: wybierz kolor (♠♥♦♣), potem klikaj rangi kart — potrzebne 6 kart.',
+        generating: 'Generowanie mnemonica...',
+        done: 'Gotowe! Kliknij „Pokaż mnemonik”, aby zobaczyć mnemonic.',
+        showSalt: '🔒 Pokaż Salt',
+        hideSalt: '🔓 Ukryj Salt',
+        revealMnemonic: '👁 Pokaż mnemonik',
+        copyMnemonic: '📋 Kopiuj do schowka',
+        copied: 'Skopiowane do schowka! ✓',
+        mnemonicRevealed: 'Mnemonic widoczny. Kliknij „Kopiuj do schowka”, aby skopiować.',
+        labelEntropy: 'Entropia (karty)',
+        labelSalt: 'Salt z czasu kliknięć',
+        labelBinary: 'Binary mnemonic',
+        labelMnemonic: 'Mnemonic (BIP39)'
+    },
+    en: {
+        title: '🧩 Mnemonic Generator',
+        instructionIdle: 'Choose mnemonic length below to begin.',
+        startHeading: 'INSTRUCTIONS',
+        startSteps: [
+            'Prepare a deck of 52 playing cards.',
+            'Shuffle using the \'riffle shuffle\' method at least 7 times',
+            'Choose the mnemonic length you want to generate',
+            'Click cards in the order you draw them, following the prompts',
+        ],
+        startPrompt: 'How many words for the mnemonic?',
+        btn12: '12 words (128-bit)',
+        btn15: '15 words (160-bit)',
+        btn18: '18 words (192-bit)',
+        btn21: '21 words (224-bit)',
+        btn24: '24 words (256-bit)',
+        btnRestart: 'Restart',
+        btnLang: 'PL',
+        pickSuit: 'Choose a suit (♠♥♦♣), then click card ranks',
+        suitPrefix: 'Suit',
+        suitSpades: '♠ Spades',
+        suitHearts: '♥ Hearts',
+        suitDiamonds: '♦ Diamonds',
+        suitClubs: '♣ Clubs',
+        suitBtnClubs: '♣<br>Clubs',
+        suitBtnDiamonds: '♦<br>Diamonds',
+        suitBtnSpades: '♠<br>Spades',
+        suitBtnHearts: '♥<br>Hearts',
+        pickSuitFirst: 'Choose a suit first!',
+        clickRanks: 'click card ranks',
+        suitSelected: (suit) => `Suit: ${suitName(suit)} — click card ranks`,
+        cardAdded: (name, remaining) => `Added ${name}. ${remaining} cards remaining.`,
+        round2Prompt: '♻️ All 52 cards used.<br><strong>Shuffle the deck again</strong> and draw <strong>6 more cards</strong>,<br>to obtain full 256 bits of entropy for 24 words.',
+        btnRound2: 'I\'ve shuffled — continue',
+        round2Instruction: 'Shuffle the deck again and click "I\'ve shuffled — continue".',
+        round2Title: 'Round 2: choose a suit (♠♥♦♣), then click card ranks — 6 cards needed.',
+        generating: 'Generating mnemonic...',
+        done: 'Done! Click "Reveal Mnemonic" to see the mnemonic.',
+        showSalt: '🔒 Show Salt',
+        hideSalt: '🔓 Hide Salt',
+        revealMnemonic: '👁 Reveal Mnemonic',
+        copyMnemonic: '📋 Copy to Clipboard',
+        copied: 'Copied to clipboard! ✓',
+        mnemonicRevealed: 'Mnemonic visible. Click "Copy to Clipboard" to copy.',
+        labelEntropy: 'Entropy (cards)',
+        labelSalt: 'Salt (click timing)',
+        labelBinary: 'Binary mnemonic',
+        labelMnemonic: 'Mnemonic (BIP39)'
+    }
+};
+
+// ============================================================
+// Language Detection & Translation
+// ============================================================
+let currentLang = 'pl';
+
+function detectLanguage() {
+    const browserLang = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    currentLang = browserLang.startsWith('pl') ? 'pl' : 'en';
+}
+
+function t(key, ...args) {
+    let val = I18N[currentLang][key];
+    if (typeof val === 'function') return val(...args);
+    return val !== undefined ? val : key;
+}
+
+function tArray(key) {
+    return I18N[currentLang][key] || [];
+}
+
+// ============================================================
 // Application State
 // ============================================================
-let state = 'IDLE';                    // 'IDLE' | 'COLLECTING' | 'DONE'
+let state = 'IDLE';   // 'IDLE' | 'COLLECTING' | 'ROUND2_PROMPT' | 'COLLECTING_ROUND2' | 'DONE'
 let activeSuit = null;                 // 'S' | 'H' | 'D' | 'C' | null
 let usedCards = { 'S': new Set(), 'H': new Set(), 'D': new Set(), 'C': new Set() };
-let totalClicked = 0;
+let totalClicked = 0;                  // cards clicked in the current round
+let round = 1;                         // 1 | 2 (round 2 only for 24 words)
 let tbEnt = '';
 let tbSalt = '';
 let selectedWordIndex = 4;             // default: 24 words (index 4 → 256 bits)
+
+// UI state flags (for i18n re-resolution)
+let saltVisible = false;
+let mnemonicRevealed = false;
+let _instrKey = 'instructionIdle';
+let _instrArgs = [];
+
+// Card requirements per word count (indexes: 0=12, 1=15, 2=18, 3=21, 4=24)
+const CARDS_REQUIRED = [35, 41, 47, 52, 52];
+const NEEDS_SECOND_ROUND = [false, false, false, false, true];
+const SECOND_ROUND_CARDS = 6;
+const WORD_COUNTS = [12, 15, 18, 21, 24];
 
 // ============================================================
 // DOM References
 // ============================================================
 const els = {
-    selectWords: document.getElementById('selectWords'),
-    btnStart: document.getElementById('btnStart'),
+    btnLangToggle: document.getElementById('btnLangToggle'),
     btnRestart: document.getElementById('btnRestart'),
     instruction: document.getElementById('instruction'),
+    startPanel: document.getElementById('startPanel'),
+    startHeading: document.getElementById('startHeading'),
+    startSteps: document.getElementById('startSteps'),
+    startPrompt: document.getElementById('startPrompt'),
+    lengthBtns: document.querySelectorAll('.btn-length'),
     suitBtns: document.querySelectorAll('.suit-btn'),
+    suitBtnC: document.getElementById('suitBtnC'),
+    suitBtnD: document.getElementById('suitBtnD'),
+    suitBtnS: document.getElementById('suitBtnS'),
+    suitBtnH: document.getElementById('suitBtnH'),
     rankBtns: document.querySelectorAll('.rank-btn'),
     progress: document.getElementById('progress'),
     progressText: document.getElementById('progressText'),
     mainGrid: document.getElementById('mainGrid'),
+    round2Prompt: document.getElementById('round2Prompt'),
+    round2Text: document.getElementById('round2Text'),
+    btnRound2: document.getElementById('btnRound2'),
+    btnToggleSalt: document.getElementById('btnToggleSalt'),
+    saltField: document.getElementById('saltField'),
+    btnRevealMnemonic: document.getElementById('btnRevealMnemonic'),
+    mnemonicField: document.getElementById('mnemonicField'),
+    binaryMnemonicField: document.getElementById('binaryMnemonicField'),
     outputEnt: document.getElementById('outputEnt'),
     outputSalt: document.getElementById('outputSalt'),
     outputSeed: document.getElementById('outputSeed'),
     outputMnemonic: document.getElementById('outputMnemonic'),
+    labelEntropy: document.getElementById('labelEntropy'),
+    labelSalt: document.getElementById('labelSalt'),
+    labelBinary: document.getElementById('labelBinary'),
+    labelMnemonic: document.getElementById('labelMnemonic'),
+    headerTitle: document.getElementById('headerTitle'),
 };
 
 // ============================================================
@@ -607,6 +902,14 @@ function resetCardState() {
     tbEnt = '';
     tbSalt = '';
     activeSuit = null;
+}
+
+function getCardsRequired() {
+    return CARDS_REQUIRED[selectedWordIndex];
+}
+
+function needsSecondRound() {
+    return NEEDS_SECOND_ROUND[selectedWordIndex];
 }
 
 function refreshRankButtons() {
@@ -623,12 +926,78 @@ function refreshRankButtons() {
     }
 }
 
-function updateInstruction(text) {
-    els.instruction.textContent = text;
+function updateInstruction(key, ...args) {
+    _instrKey = key;
+    _instrArgs = args;
+    _resolveInstruction();
+}
+
+function _resolveInstruction() {
+    // t() handles both plain strings and functions (like cardAdded, suitSelected)
+    els.instruction.textContent = t(_instrKey, ..._instrArgs);
 }
 
 function suitName(s) {
-    return { 'S': '♠ Pik', 'H': '♥ Kier', 'D': '♦ Karo', 'C': '♣ Trefl' }[s];
+    return {
+        'C': t('suitClubs'),
+        'D': t('suitDiamonds'),
+        'S': t('suitSpades'),
+        'H': t('suitHearts')
+    }[s];
+}
+
+// ============================================================
+// Refresh all UI text after language change
+// ============================================================
+function refreshAllTexts() {
+    // Header
+    els.headerTitle.textContent = t('title');
+    els.btnLangToggle.textContent = t('btnLang');
+    els.btnRestart.textContent = t('btnRestart');
+
+    // Start panel
+    els.startHeading.textContent = t('startHeading');
+    const steps = tArray('startSteps');
+    const lis = els.startSteps.querySelectorAll('li');
+    lis.forEach((li, i) => {
+        if (i < steps.length) li.textContent = steps[i];
+    });
+    els.startPrompt.textContent = t('startPrompt');
+
+    // Length buttons
+    const btnKeys = ['btn12', 'btn15', 'btn18', 'btn21', 'btn24'];
+    els.lengthBtns.forEach((btn, i) => {
+        if (i < btnKeys.length) btn.textContent = t(btnKeys[i]);
+    });
+
+    // Suit buttons
+    els.suitBtnC.innerHTML = t('suitBtnClubs');
+    els.suitBtnD.innerHTML = t('suitBtnDiamonds');
+    els.suitBtnS.innerHTML = t('suitBtnSpades');
+    els.suitBtnH.innerHTML = t('suitBtnHearts');
+
+    // Output labels
+    els.labelEntropy.textContent = t('labelEntropy');
+    els.labelSalt.textContent = t('labelSalt');
+    els.labelBinary.textContent = t('labelBinary');
+    els.labelMnemonic.textContent = t('labelMnemonic');
+
+    // Salt toggle (uses flag, not text sniffing)
+    els.btnToggleSalt.textContent = saltVisible ? t('hideSalt') : t('showSalt');
+
+    // Reveal mnemonic button (uses flag, not text sniffing)
+    if (state === 'DONE' && mnemonicRevealed) {
+        els.btnRevealMnemonic.textContent = t('copyMnemonic');
+    } else {
+        els.btnRevealMnemonic.textContent = t('revealMnemonic');
+    }
+
+    // Round 2 prompt
+    els.round2Text.innerHTML = t('round2Prompt');
+    els.btnRound2.textContent = t('btnRound2');
+
+    // Instruction bar — re-resolve from stored key (works in ALL states!)
+    _resolveInstruction();
 }
 
 // ============================================================
@@ -643,12 +1012,14 @@ async function updateSalt() {
 
 async function finishGeneration() {
     state = 'DONE';
-    updateInstruction('Generowanie mnemonica...');
+    updateInstruction('generating');
 
     const ENTROPY_BITS = [128, 160, 192, 224, 256];
     const entLen = ENTROPY_BITS[selectedWordIndex];
 
     // SHA512(entropy + salt)
+    // tbEnt = card-derived entropy (concatenated card names)
+    // tbSalt = progressive SHA-512 chain of click timestamps
     const msg = new TextEncoder().encode(tbEnt + tbSalt);
     const hashBuffer = await crypto.subtle.digest('SHA-512', msg);
     const dane = new Uint8Array(hashBuffer);
@@ -682,19 +1053,24 @@ async function finishGeneration() {
     const mnemonic = words.join(' ');
     els.outputMnemonic.value = mnemonic;
 
-    updateInstruction('Gotowe! Kliknij w mnemonic aby skopiować.');
+    // Hide the card grid, reveal the "Pokaż mnemonik" button instead of the mnemonic itself
+    els.mainGrid.classList.add('hidden');
+    els.round2Prompt.classList.add('hidden');
+    els.btnRevealMnemonic.disabled = false;
+    els.btnRevealMnemonic.textContent = t('revealMnemonic');
+
+    updateInstruction('done');
     els.btnRestart.disabled = false;
-    els.btnStart.disabled = true;
 }
 
 // ============================================================
 // Event Handlers
 // ============================================================
 
-// Suit selection
+// Suit selection (works in both COLLECTING and COLLECTING_ROUND2 states)
 els.suitBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-        if (state !== 'COLLECTING') return;
+        if (state !== 'COLLECTING' && state !== 'COLLECTING_ROUND2') return;
         const suit = btn.dataset.suit;
         selectSuit(suit);
     });
@@ -706,15 +1082,15 @@ function selectSuit(suit) {
         b.classList.toggle('active', b.dataset.suit === suit);
     });
     refreshRankButtons();
-    updateInstruction(`Kolor: ${suitName(suit)} — klikaj rangi kart`);
+    updateInstruction('suitSelected', suit);
 }
 
-// Rank click
+// Rank click (works in both COLLECTING and COLLECTING_ROUND2 states)
 els.rankBtns.forEach(btn => {
     btn.addEventListener('click', async () => {
-        if (state !== 'COLLECTING') return;
+        if (state !== 'COLLECTING' && state !== 'COLLECTING_ROUND2') return;
         if (!activeSuit) {
-            updateInstruction('Najpierw wybierz kolor!');
+            updateInstruction('pickSuitFirst');
             return;
         }
         const rank = btn.dataset.rank;
@@ -729,78 +1105,195 @@ async function clickRank(rank) {
     usedCards[activeSuit].add(rank);
     totalClicked++;
 
-    // Append to entropy
-    const cardName = rank + activeSuit;  // e.g., "2C", "TH", "AS"
+    // Append to entropy (card name, e.g. "2C", "TH", "AS")
+    const cardName = rank + activeSuit;
     tbEnt += cardName;
     els.outputEnt.value = tbEnt;
 
-    // Update salt (async crypto)
+    // Update salt progressively (async crypto): SHA512(prevSalt + clickTimestamp)
     await updateSalt();
     els.outputSalt.value = tbSalt;
 
     // Disable the rank button for current active suit
     refreshRankButtons();
 
+    // How many cards does the current round require?
+    const required = (round === 2) ? SECOND_ROUND_CARDS : getCardsRequired();
+
     // Update progress
     els.progress.value = totalClicked;
-    els.progressText.textContent = `${totalClicked}/52`;
-    updateInstruction(`Dodano ${cardName}. ${52 - totalClicked} kart pozostało.`);
+    els.progressText.textContent = `${totalClicked}/${required}`;
+    updateInstruction('cardAdded', cardName, required - totalClicked);
 
     // Check completion
-    if (totalClicked === 52) {
-        await finishGeneration();
+    if (totalClicked >= required) {
+        if (round === 1 && needsSecondRound()) {
+            // Full deck drawn for 24 words — ask user to reshuffle
+            transitionToRound2Prompt();
+        } else {
+            await finishGeneration();
+        }
     }
 }
 
-// Start button
-els.btnStart.addEventListener('click', () => {
-    state = 'COLLECTING';
-    selectedWordIndex = els.selectWords.selectedIndex;  // 0-4
-    resetCardState();
+// Show the reshuffle prompt after 52 cards (24 words only)
+function transitionToRound2Prompt() {
+    state = 'ROUND2_PROMPT';
+    els.mainGrid.classList.add('hidden');
+    els.round2Prompt.classList.remove('hidden');
+    els.btnToggleSalt.disabled = true;
+    updateInstruction('round2Instruction');
+}
+
+// Start the second round: fresh deck, entropy/salt preserved
+function startRound2() {
+    state = 'COLLECTING_ROUND2';
+    round = 2;
+    usedCards = { 'S': new Set(), 'H': new Set(), 'D': new Set(), 'C': new Set() };
+    totalClicked = 0;
+    activeSuit = null;
+
+    els.round2Prompt.classList.add('hidden');
     els.mainGrid.classList.remove('hidden');
-    els.btnStart.disabled = true;
-    els.selectWords.disabled = true;
-    els.btnRestart.disabled = false;
-    updateInstruction('Wybierz kolor (♠♥♦♣), potem klikaj rangi kart');
+    els.progress.max = SECOND_ROUND_CARDS;
+    els.progress.value = 0;
+    els.progressText.textContent = `0/${SECOND_ROUND_CARDS}`;
+    els.suitBtns.forEach(b => b.classList.remove('active'));
+    els.btnToggleSalt.disabled = false;
     refreshRankButtons();
+    updateInstruction('round2Title');
+}
+
+// Start generation — called by length buttons
+function startGeneration() {
+    state = 'COLLECTING';
+    round = 1;
+    resetCardState();
+    saltVisible = false;
+    mnemonicRevealed = false;
+
+    const required = getCardsRequired();
+    els.startPanel.classList.add('hidden');
+    els.mainGrid.classList.remove('hidden');
+    els.round2Prompt.classList.add('hidden');
+    els.btnRestart.disabled = false;
+    els.progress.max = required;
+    els.progress.value = 0;
+    els.progressText.textContent = `0/${required}`;
+    els.btnRevealMnemonic.disabled = true;
+    els.btnRevealMnemonic.textContent = t('revealMnemonic');
+    els.btnRevealMnemonic.classList.remove('btn-success');
+    els.mnemonicField.classList.add('hidden');
+    els.binaryMnemonicField.classList.add('hidden');
+    els.btnToggleSalt.disabled = false;
+    els.saltField.classList.add('hidden');
+    els.btnToggleSalt.textContent = t('showSalt');
+    updateInstruction('pickSuit');
+    refreshRankButtons();
+}
+
+// Length buttons — each starts the process directly
+els.lengthBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const words = parseInt(btn.dataset.words);
+        selectedWordIndex = WORD_COUNTS.indexOf(words);
+        startGeneration();
+    });
+});
+
+// Language toggle
+els.btnLangToggle.addEventListener('click', () => {
+    currentLang = currentLang === 'pl' ? 'en' : 'pl';
+    refreshAllTexts();
 });
 
 // Restart button
 els.btnRestart.addEventListener('click', () => {
     state = 'IDLE';
+    round = 1;
     resetCardState();
+    saltVisible = false;
+    mnemonicRevealed = false;
+    els.startPanel.classList.remove('hidden');
     els.mainGrid.classList.add('hidden');
-    els.btnStart.disabled = false;
-    els.selectWords.disabled = false;
+    els.round2Prompt.classList.add('hidden');
     els.btnRestart.disabled = true;
     els.outputEnt.value = '';
     els.outputSalt.value = '';
     els.outputSeed.value = '';
     els.outputMnemonic.value = '';
+    els.saltField.classList.add('hidden');
+    els.btnToggleSalt.textContent = t('showSalt');
+    els.btnToggleSalt.disabled = true;
+    els.mnemonicField.classList.add('hidden');
+    els.binaryMnemonicField.classList.add('hidden');
+    els.btnRevealMnemonic.disabled = true;
+    els.btnRevealMnemonic.textContent = t('revealMnemonic');
+    els.btnRevealMnemonic.classList.remove('btn-success');
     els.progress.value = 0;
     els.progressText.textContent = '0/52';
     activeSuit = null;
     els.suitBtns.forEach(b => b.classList.remove('active'));
-    updateInstruction('Wybierz długość mnemonica i kliknij Start');
+    updateInstruction('instructionIdle');
 });
 
-// Copy to clipboard on output field clicks
-[els.outputEnt, els.outputSalt, els.outputSeed, els.outputMnemonic].forEach(el => {
+// ============================================================
+// Salt toggle — show/hide the salt field
+// ============================================================
+els.btnToggleSalt.addEventListener('click', () => {
+    saltVisible = !saltVisible;
+    els.saltField.classList.toggle('hidden', !saltVisible);
+    els.btnToggleSalt.textContent = saltVisible ? t('hideSalt') : t('showSalt');
+});
+
+// ============================================================
+// Mnemonic reveal / copy to clipboard
+// ============================================================
+els.btnRevealMnemonic.addEventListener('click', async () => {
+    if (mnemonicRevealed) {
+        // Copy to clipboard
+        try {
+            await navigator.clipboard.writeText(els.outputMnemonic.value);
+            updateInstruction('copied');
+        } catch (err) {
+            els.outputMnemonic.select();
+            document.execCommand('copy');
+            updateInstruction('copied');
+        }
+    } else {
+        // First click: reveal the mnemonic
+        mnemonicRevealed = true;
+        els.mnemonicField.classList.remove('hidden');
+        els.binaryMnemonicField.classList.remove('hidden');
+        els.btnRevealMnemonic.textContent = t('copyMnemonic');
+        els.btnRevealMnemonic.classList.add('btn-success');
+        updateInstruction('mnemonicRevealed');
+    }
+});
+
+// ============================================================
+// Round 2 — continue after reshuffle
+// ============================================================
+els.btnRound2.addEventListener('click', startRound2);
+
+// ============================================================
+// Copy to clipboard on output field clicks (entropy, seed only)
+// ============================================================
+[els.outputEnt, els.outputSeed].forEach(el => {
     el.addEventListener('click', async () => {
         if (!el.value) return;
         try {
             await navigator.clipboard.writeText(el.value);
             const prevText = els.instruction.textContent;
-            updateInstruction('Skopiowane do schowka! ✓');
+            updateInstruction('copied');
             setTimeout(() => {
                 els.instruction.textContent = prevText;
             }, 1500);
         } catch (err) {
-            // Fallback for older browsers
             el.select();
             document.execCommand('copy');
             const prevText = els.instruction.textContent;
-            updateInstruction('Skopiowane do schowka! ✓');
+            updateInstruction('copied');
             setTimeout(() => {
                 els.instruction.textContent = prevText;
             }, 1500);
@@ -812,10 +1305,21 @@ els.btnRestart.addEventListener('click', () => {
 // Initialization
 // ============================================================
 function init() {
+    detectLanguage();
+    saltVisible = false;
+    mnemonicRevealed = false;
     els.mainGrid.classList.add('hidden');
+    els.round2Prompt.classList.add('hidden');
+    els.startPanel.classList.remove('hidden');
     els.btnRestart.disabled = true;
-    els.selectWords.value = '24';
-    updateInstruction('Wybierz długość mnemonica i kliknij Start');
+    els.btnRevealMnemonic.disabled = true;
+    els.btnToggleSalt.disabled = true;
+    els.mnemonicField.classList.add('hidden');
+    els.binaryMnemonicField.classList.add('hidden');
+    els.saltField.classList.add('hidden');
+    selectedWordIndex = 4; // default: 24 words
+    refreshAllTexts();
+    updateInstruction('instructionIdle');
 }
 
 document.addEventListener('DOMContentLoaded', init);
