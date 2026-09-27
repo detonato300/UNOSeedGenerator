@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generator Seed — BIP39 Mnemonic</title>
+<title>UNO Seed Generator</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,10 +12,10 @@
     --surface: #161b22;
     --text: #e6edf3;
     --text-muted: #8b949e;
-    --suit-spades: #c9d1d9;
-    --suit-hearts: #e63946;
-    --suit-diamonds: #e63946;
-    --suit-clubs: #2a9d8f;
+    --uno-red: #e63946;
+    --uno-yellow: #f4d35e;
+    --uno-green: #2ea043;
+    --uno-blue: #1f6feb;
     --accent: #58a6ff;
     --border: #30363d;
 }
@@ -72,8 +72,8 @@ body {
 
 .btn-danger {
     background: transparent;
-    color: var(--suit-hearts);
-    border-color: var(--suit-hearts);
+    color: var(--uno-red);
+    border-color: var(--uno-red);
 }
 
 .btn-danger:hover:not(:disabled) {
@@ -174,7 +174,7 @@ body {
     margin-bottom: 20px;
 }
 
-.suit-panel {
+.color-panel {
     display: flex;
     flex-direction: row;
     gap: 10px;
@@ -182,11 +182,11 @@ body {
     flex-wrap: wrap;
 }
 
-.suit-btn {
+.color-btn {
     flex: 1;
     min-width: 80px;
     padding: 14px 8px;
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     border-radius: 10px;
     border: 2px solid var(--border);
     background: var(--surface);
@@ -197,38 +197,38 @@ body {
     font-weight: 600;
 }
 
-.suit-btn:hover {
+.color-btn:hover {
     border-color: var(--accent);
 }
 
-.suit-btn.active {
+.color-btn.active {
     border-color: currentColor;
     box-shadow: 0 0 12px rgba(88, 166, 255, 0.3);
     transform: scale(1.03);
 }
 
-.suit-btn[data-suit="S"] { color: var(--suit-spades); }
-.suit-btn[data-suit="H"] { color: var(--suit-hearts); }
-.suit-btn[data-suit="D"] { color: var(--suit-diamonds); }
-.suit-btn[data-suit="C"] { color: var(--suit-clubs); }
+.color-btn[data-color="R"] { color: var(--uno-red); }
+.color-btn[data-color="Y"] { color: var(--uno-yellow); }
+.color-btn[data-color="G"] { color: var(--uno-green); }
+.color-btn[data-color="B"] { color: var(--uno-blue); }
 
-.rank-panel {
+.type-panel {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.rank-grid-row {
+.type-grid-row {
     display: flex;
     gap: 8px;
     justify-content: center;
     flex-wrap: wrap;
 }
 
-.rank-grid-row .rank-btn {
+.type-grid-row .type-btn {
     width: 52px;
     height: 52px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     border-radius: 8px;
     border: 2px solid var(--border);
@@ -238,15 +238,58 @@ body {
     transition: all 0.15s ease;
 }
 
-.rank-btn:hover:not(:disabled) {
+.type-btn:hover:not(:disabled) {
     border-color: var(--accent);
     background: #1f2937;
 }
 
-.rank-btn:disabled {
+.type-btn:disabled {
     opacity: 0.15;
     cursor: not-allowed;
     text-decoration: line-through;
+}
+
+.wild-panel {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.wild-btn {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 2px dashed var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.wild-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: #1f2937;
+}
+
+.wild-btn:disabled {
+    opacity: 0.15;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.deck-config-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.deck-config-bar input[type="file"] {
+    display: none;
 }
 
 .progress-container {
@@ -369,15 +412,15 @@ progress::-moz-progress-bar { background: var(--accent); border-radius: 5px; }
 
 /* Responsive */
 @media (max-width: 600px) {
-    .suit-btn {
+    .color-btn {
         padding: 10px 6px;
-        font-size: 1.2rem;
+        font-size: 1rem;
         flex: 1;
     }
-    .rank-grid-row .rank-btn {
+    .type-grid-row .type-btn {
         width: 44px;
         height: 44px;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
     }
     .header h1 {
         font-size: 1.1rem;
@@ -390,10 +433,10 @@ progress::-moz-progress-bar { background: var(--accent); border-radius: 5px; }
 }
 
 @media (max-width: 400px) {
-    .rank-grid-row .rank-btn {
+    .type-grid-row .type-btn {
         width: 38px;
         height: 38px;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
     }
     body {
         padding: 12px;
@@ -428,41 +471,50 @@ progress::-moz-progress-bar { background: var(--accent); border-radius: 5px; }
         <button class="btn btn-length" data-words="21"></button>
         <button class="btn btn-length" data-words="24"></button>
     </div>
+    <div class="deck-config-bar">
+        <label for="deckFileInput" id="btnLoadDeck" class="btn btn-toggle" style="width:auto;"></label>
+        <input type="file" id="deckFileInput" accept="application/json">
+        <span id="deckConfigStatus"></span>
+    </div>
 </div>
 
 <div id="mainGrid" class="main-grid hidden">
-    <div class="suit-panel">
-        <button id="suitBtnC" class="suit-btn" data-suit="C"></button>
-        <button id="suitBtnD" class="suit-btn" data-suit="D"></button>
-        <button id="suitBtnS" class="suit-btn" data-suit="S"></button>
-        <button id="suitBtnH" class="suit-btn" data-suit="H"></button>
+    <div class="color-panel">
+        <button id="colorBtnR" class="color-btn" data-color="R"></button>
+        <button id="colorBtnY" class="color-btn" data-color="Y"></button>
+        <button id="colorBtnG" class="color-btn" data-color="G"></button>
+        <button id="colorBtnB" class="color-btn" data-color="B"></button>
     </div>
-    <div class="rank-panel">
-        <div class="rank-grid-row">
-            <button class="rank-btn" data-rank="2">2</button>
-            <button class="rank-btn" data-rank="3">3</button>
-            <button class="rank-btn" data-rank="4">4</button>
-            <button class="rank-btn" data-rank="5">5</button>
-            <button class="rank-btn" data-rank="6">6</button>
-            <button class="rank-btn" data-rank="7">7</button>
-            <button class="rank-btn" data-rank="8">8</button>
-            <button class="rank-btn" data-rank="9">9</button>
-            <button class="rank-btn" data-rank="T">10</button>
+    <div class="type-panel">
+        <div class="type-grid-row">
+            <button class="type-btn" data-type="0">0</button>
+            <button class="type-btn" data-type="1">1</button>
+            <button class="type-btn" data-type="2">2</button>
+            <button class="type-btn" data-type="3">3</button>
+            <button class="type-btn" data-type="4">4</button>
+            <button class="type-btn" data-type="5">5</button>
+            <button class="type-btn" data-type="6">6</button>
+            <button class="type-btn" data-type="7">7</button>
+            <button class="type-btn" data-type="8">8</button>
+            <button class="type-btn" data-type="9">9</button>
         </div>
-        <div class="rank-grid-row rank-grid-row--bottom">
-            <button class="rank-btn" data-rank="J">J</button>
-            <button class="rank-btn" data-rank="Q">Q</button>
-            <button class="rank-btn" data-rank="K">K</button>
-            <button class="rank-btn" data-rank="A">A</button>
+        <div class="type-grid-row type-grid-row--bottom">
+            <button class="type-btn" data-type="+2">+2</button>
+            <button class="type-btn" data-type="STOP" id="typeBtnStop"></button>
+            <button class="type-btn" data-type="REV" id="typeBtnRev"></button>
+        </div>
+        <div class="wild-panel">
+            <button class="wild-btn" data-wild="WILD" id="wildBtnColor"></button>
+            <button class="wild-btn" data-wild="WILD4" id="wildBtnDraw4"></button>
         </div>
         <div class="progress-container">
-            <progress id="progress" max="52" value="0"></progress>
-            <span id="progressText">0/52</span>
+            <progress id="progress" max="108" value="0"></progress>
+            <span id="progressText">0/108</span>
         </div>
     </div>
 </div>
 
-<!-- Round 2 prompt (hidden by default, shown after 52 cards for 24 words) -->
+<!-- Round 2 prompt (hidden by default, shown after the full deck for 24 words) -->
 <div id="round2Prompt" class="round2-prompt hidden">
     <p id="round2Text"></p>
     <button id="btnRound2" class="btn btn-primary"></button>
@@ -710,14 +762,14 @@ const BIP39_WORDS = [
 // ============================================================
 const I18N = {
     pl: {
-        title: '🧩 Mnemonic Generator',
+        title: '🧩 UNO Mnemonic Generator',
         instructionIdle: 'Wybierz długość mnemonica poniżej, aby rozpocząć.',
         startHeading: 'INSTRUKCJA',
         startSteps: [
-            'Przygotuj talię 52 kart.',
+            'Przygotuj talię kart UNO (domyślnie 108 kart, lub własny skład wgrany z deck.json).',
             'Potasuj ją metodą \'riffle shuffle\' co najmniej 7 razy',
             'Wybierz długość mnemonica jaki chcesz uzyskać',
-            'Klikaj kolejne wylosowane karty zgodnie z poleceniami',
+            'Klikaj kolejne wylosowane karty (najpierw kolor, potem typ) zgodnie z poleceniami',
         ],
         startPrompt: 'Mnemonic na ile słów?',
         btn12: '12 słów (128-bit)',
@@ -727,24 +779,31 @@ const I18N = {
         btn24: '24 słowa (256-bit)',
         btnRestart: 'Restart',
         btnLang: 'EN',
-        pickSuit: 'Wybierz kolor (♠♥♦♣), potem klikaj rangi kart',
-        suitPrefix: 'Kolor',
-        suitSpades: '♠ Pik',
-        suitHearts: '♥ Kier',
-        suitDiamonds: '♦ Karo',
-        suitClubs: '♣ Trefl',
-        suitBtnClubs: '♣<br>Trefl',
-        suitBtnDiamonds: '♦<br>Karo',
-        suitBtnSpades: '♠<br>Pik',
-        suitBtnHearts: '♥<br>Kier',
-        pickSuitFirst: 'Najpierw wybierz kolor!',
-        clickRanks: 'klikaj rangi kart',
-        suitSelected: (suit) => `Kolor: ${suitName(suit)} — klikaj rangi kart`,
+        btnLoadDeck: '📂 Wczytaj własny deck (deck.json)',
+        deckLoaded: (n) => `Wczytano własny deck: ${n} kart.`,
+        deckLoadError: 'Nie udało się wczytać deck.json — sprawdź format pliku.',
+        pickColor: 'Wybierz kolor karty, potem jej typ (lub kliknij Wild / Wild +4)',
+        colorPrefix: 'Kolor',
+        colorRed: '🔴 Czerwony',
+        colorYellow: '🟡 Żółty',
+        colorGreen: '🟢 Zielony',
+        colorBlue: '🔵 Niebieski',
+        colorBtnRed: '🔴<br>Czerwony',
+        colorBtnYellow: '🟡<br>Żółty',
+        colorBtnGreen: '🟢<br>Zielony',
+        colorBtnBlue: '🔵<br>Niebieski',
+        typeStop: 'Stop',
+        typeRev: 'Rewers',
+        wildColor: 'Wild',
+        wildDraw4: 'Wild +4',
+        pickColorFirst: 'Najpierw wybierz kolor!',
+        clickTypes: 'klikaj typy kart',
+        colorSelected: (color) => `Kolor: ${colorName(color)} — klikaj typy kart`,
         cardAdded: (name, remaining) => `Dodano ${name}. ${remaining} kart pozostało.`,
-        round2Prompt: '♻️ Wszystkie 52 karty wykorzystane.<br><strong>Potasuj talię ponownie</strong> i wylosuj jeszcze <strong>6 kart</strong>,<br>aby uzyskać pełne 256 bitów entropii dla 24 słów.',
+        round2Prompt: (n) => `♻️ Wszystkie skonfigurowane karty wykorzystane.<br><strong>Potasuj talię ponownie</strong> i wylosuj jeszcze <strong>${n} kart</strong>,<br>aby uzyskać pełne 256 bitów entropii dla 24 słów.`,
         btnRound2: 'Potasowałem — kontynuuj',
         round2Instruction: 'Potasuj talię ponownie i kliknij „Potasowałem — kontynuuj”.',
-        round2Title: 'Runda 2: wybierz kolor (♠♥♦♣), potem klikaj rangi kart — potrzebne 6 kart.',
+        round2Title: (n) => `Runda 2: wybierz kolor, potem typ karty (lub Wild / Wild +4) — potrzeba jeszcze ${n} kart.`,
         generating: 'Generowanie mnemonica...',
         done: 'Gotowe! Kliknij „Pokaż mnemonik”, aby zobaczyć mnemonic.',
         showSalt: '🔒 Pokaż Salt',
@@ -759,14 +818,14 @@ const I18N = {
         labelMnemonic: 'Mnemonic (BIP39)'
     },
     en: {
-        title: '🧩 Mnemonic Generator',
+        title: '🧩 UNO Mnemonic Generator',
         instructionIdle: 'Choose mnemonic length below to begin.',
         startHeading: 'INSTRUCTIONS',
         startSteps: [
-            'Prepare a deck of 52 playing cards.',
+            'Prepare a deck of UNO cards (108 by default, or your own composition loaded from deck.json).',
             'Shuffle using the \'riffle shuffle\' method at least 7 times',
             'Choose the mnemonic length you want to generate',
-            'Click cards in the order you draw them, following the prompts',
+            'Click cards in the order you draw them (color first, then type), following the prompts',
         ],
         startPrompt: 'How many words for the mnemonic?',
         btn12: '12 words (128-bit)',
@@ -776,24 +835,31 @@ const I18N = {
         btn24: '24 words (256-bit)',
         btnRestart: 'Restart',
         btnLang: 'PL',
-        pickSuit: 'Choose a suit (♠♥♦♣), then click card ranks',
-        suitPrefix: 'Suit',
-        suitSpades: '♠ Spades',
-        suitHearts: '♥ Hearts',
-        suitDiamonds: '♦ Diamonds',
-        suitClubs: '♣ Clubs',
-        suitBtnClubs: '♣<br>Clubs',
-        suitBtnDiamonds: '♦<br>Diamonds',
-        suitBtnSpades: '♠<br>Spades',
-        suitBtnHearts: '♥<br>Hearts',
-        pickSuitFirst: 'Choose a suit first!',
-        clickRanks: 'click card ranks',
-        suitSelected: (suit) => `Suit: ${suitName(suit)} — click card ranks`,
+        btnLoadDeck: '📂 Load custom deck (deck.json)',
+        deckLoaded: (n) => `Custom deck loaded: ${n} cards.`,
+        deckLoadError: 'Could not load deck.json — check the file format.',
+        pickColor: 'Choose a card color, then its type (or click Wild / Wild +4)',
+        colorPrefix: 'Color',
+        colorRed: '🔴 Red',
+        colorYellow: '🟡 Yellow',
+        colorGreen: '🟢 Green',
+        colorBlue: '🔵 Blue',
+        colorBtnRed: '🔴<br>Red',
+        colorBtnYellow: '🟡<br>Yellow',
+        colorBtnGreen: '🟢<br>Green',
+        colorBtnBlue: '🔵<br>Blue',
+        typeStop: 'Stop',
+        typeRev: 'Reverse',
+        wildColor: 'Wild',
+        wildDraw4: 'Wild +4',
+        pickColorFirst: 'Choose a color first!',
+        clickTypes: 'click card types',
+        colorSelected: (color) => `Color: ${colorName(color)} — click card types`,
         cardAdded: (name, remaining) => `Added ${name}. ${remaining} cards remaining.`,
-        round2Prompt: '♻️ All 52 cards used.<br><strong>Shuffle the deck again</strong> and draw <strong>6 more cards</strong>,<br>to obtain full 256 bits of entropy for 24 words.',
+        round2Prompt: (n) => `♻️ All configured cards used.<br><strong>Shuffle the deck again</strong> and draw <strong>${n} more cards</strong>,<br>to obtain full 256 bits of entropy for 24 words.`,
         btnRound2: 'I\'ve shuffled — continue',
         round2Instruction: 'Shuffle the deck again and click "I\'ve shuffled — continue".',
-        round2Title: 'Round 2: choose a suit (♠♥♦♣), then click card ranks — 6 cards needed.',
+        round2Title: (n) => `Round 2: choose a color, then card type (or Wild / Wild +4) — ${n} more cards needed.`,
         generating: 'Generating mnemonic...',
         done: 'Done! Click "Reveal Mnemonic" to see the mnemonic.',
         showSalt: '🔒 Show Salt',
@@ -830,11 +896,54 @@ function tArray(key) {
 }
 
 // ============================================================
+// UNO deck model
+// ============================================================
+const COLORS = ['R', 'Y', 'G', 'B'];
+const TYPES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'STOP', 'REV'];
+const WILDS = ['WILD', 'WILD4'];
+
+// Standard 108-card UNO deck: one 0, two of each 1-9/+2/Stop/Reverse per
+// color (25 x 4 = 100), plus 4 Wild + 4 Wild+4.
+function defaultDeck() {
+    const deck = {};
+    COLORS.forEach(c => {
+        deck[c] = {};
+        TYPES.forEach(t => { deck[c][t] = (t === '0') ? 1 : 2; });
+    });
+    deck.WILD = { WILD: 4, WILD4: 4 };
+    return deck;
+}
+
+function deckTotal(deck) {
+    let total = 0;
+    COLORS.forEach(c => TYPES.forEach(t => total += deck[c][t]));
+    total += deck.WILD.WILD + deck.WILD.WILD4;
+    return total;
+}
+
+// Deck actually configured for this session (default, or loaded from deck.json
+// produced by INIT.py). Cloned into `remaining` at the start of each round.
+let deckConfig = defaultDeck();
+let deckConfigTotal = deckTotal(deckConfig);
+let customDeckLoaded = false;
+
+function cloneDeck(deck) {
+    const copy = {};
+    COLORS.forEach(c => { copy[c] = { ...deck[c] }; });
+    copy.WILD = { ...deck.WILD };
+    return copy;
+}
+
+// ============================================================
 // Application State
 // ============================================================
-let state = 'IDLE';   // 'IDLE' | 'COLLECTING' | 'ROUND2_PROMPT' | 'COLLECTING_ROUND2' | 'DONE'
-let activeSuit = null;                 // 'S' | 'H' | 'D' | 'C' | null
-let usedCards = { 'S': new Set(), 'H': new Set(), 'D': new Set(), 'C': new Set() };
+let state = 'IDLE';   // 'IDLE' | 'COLLECTING' | 'ROUND2_PROMPT' | 'COLLECTING_ROUND2' | 'FINISHING' | 'DONE'
+// Salt updates are serialised so fast clicks cannot read the same tbSalt twice;
+// epoch is bumped on reset so queued work from an aborted run is dropped.
+let saltQueue = Promise.resolve();
+let epoch = 0;
+let activeColor = null;                // 'R' | 'Y' | 'G' | 'B' | null
+let remaining = cloneDeck(deckConfig);  // remaining clickable count per card, this round
 let totalClicked = 0;                  // cards clicked in the current round
 let round = 1;                         // 1 | 2 (round 2 only for 24 words)
 let tbEnt = '';
@@ -847,10 +956,12 @@ let mnemonicRevealed = false;
 let _instrKey = 'instructionIdle';
 let _instrArgs = [];
 
-// Card requirements per word count (indexes: 0=12, 1=15, 2=18, 3=21, 4=24)
-const CARDS_REQUIRED = [35, 41, 47, 52, 52];
+// Card requirements, as a fraction of the total configured deck size, mirror
+// the original 35/41/47/52/52-out-of-52 heuristic so a custom (e.g. partial)
+// deck loaded via deck.json still scales sensibly.
+const CARDS_REQUIRED_RATIO = [35 / 52, 41 / 52, 47 / 52, 1, 1];
 const NEEDS_SECOND_ROUND = [false, false, false, false, true];
-const SECOND_ROUND_CARDS = 6;
+const SECOND_ROUND_RATIO = 6 / 52;
 const WORD_COUNTS = [12, 15, 18, 21, 24];
 
 // ============================================================
@@ -865,12 +976,20 @@ const els = {
     startSteps: document.getElementById('startSteps'),
     startPrompt: document.getElementById('startPrompt'),
     lengthBtns: document.querySelectorAll('.btn-length'),
-    suitBtns: document.querySelectorAll('.suit-btn'),
-    suitBtnC: document.getElementById('suitBtnC'),
-    suitBtnD: document.getElementById('suitBtnD'),
-    suitBtnS: document.getElementById('suitBtnS'),
-    suitBtnH: document.getElementById('suitBtnH'),
-    rankBtns: document.querySelectorAll('.rank-btn'),
+    btnLoadDeck: document.getElementById('btnLoadDeck'),
+    deckFileInput: document.getElementById('deckFileInput'),
+    deckConfigStatus: document.getElementById('deckConfigStatus'),
+    colorBtns: document.querySelectorAll('.color-btn'),
+    colorBtnR: document.getElementById('colorBtnR'),
+    colorBtnY: document.getElementById('colorBtnY'),
+    colorBtnG: document.getElementById('colorBtnG'),
+    colorBtnB: document.getElementById('colorBtnB'),
+    typeBtns: document.querySelectorAll('.type-btn'),
+    typeBtnStop: document.getElementById('typeBtnStop'),
+    typeBtnRev: document.getElementById('typeBtnRev'),
+    wildBtns: document.querySelectorAll('.wild-btn'),
+    wildBtnColor: document.getElementById('wildBtnColor'),
+    wildBtnDraw4: document.getElementById('wildBtnDraw4'),
     progress: document.getElementById('progress'),
     progressText: document.getElementById('progressText'),
     mainGrid: document.getElementById('mainGrid'),
@@ -897,33 +1016,51 @@ const els = {
 // Helper Functions
 // ============================================================
 function resetCardState() {
-    usedCards = { 'S': new Set(), 'H': new Set(), 'D': new Set(), 'C': new Set() };
+    remaining = cloneDeck(deckConfig);
     totalClicked = 0;
     tbEnt = '';
     tbSalt = '';
-    activeSuit = null;
+    activeColor = null;
+    epoch++;
+    saltQueue = Promise.resolve();
 }
 
 function getCardsRequired() {
-    return CARDS_REQUIRED[selectedWordIndex];
+    return Math.min(deckConfigTotal, Math.ceil(deckConfigTotal * CARDS_REQUIRED_RATIO[selectedWordIndex]));
+}
+
+function getSecondRoundCards() {
+    return Math.min(deckConfigTotal, Math.max(1, Math.ceil(deckConfigTotal * SECOND_ROUND_RATIO)));
 }
 
 function needsSecondRound() {
     return NEEDS_SECOND_ROUND[selectedWordIndex];
 }
 
-function refreshRankButtons() {
-    els.rankBtns.forEach(btn => {
-        const rank = btn.dataset.rank;
-        if (activeSuit && usedCards[activeSuit].has(rank)) {
-            btn.disabled = true;
-        } else {
-            btn.disabled = false;
-        }
+function typeLabel(type) {
+    if (type === 'STOP') return t('typeStop');
+    if (type === 'REV') return t('typeRev');
+    return type;
+}
+
+function refreshTypeButtons() {
+    els.typeBtns.forEach(btn => {
+        const type = btn.dataset.type;
+        const left = activeColor ? remaining[activeColor][type] : 0;
+        btn.disabled = !activeColor || left <= 0;
+        const label = typeLabel(type);
+        btn.textContent = (activeColor && left > 1) ? `${label} (${left})` : label;
     });
-    if (!activeSuit) {
-        els.rankBtns.forEach(btn => btn.disabled = true);
-    }
+}
+
+function refreshWildButtons() {
+    els.wildBtns.forEach(btn => {
+        const kind = btn.dataset.wild;
+        const left = remaining.WILD[kind];
+        btn.disabled = left <= 0;
+        const label = kind === 'WILD' ? t('wildColor') : t('wildDraw4');
+        btn.textContent = left > 1 ? `${label} (${left})` : label;
+    });
 }
 
 function updateInstruction(key, ...args) {
@@ -933,17 +1070,17 @@ function updateInstruction(key, ...args) {
 }
 
 function _resolveInstruction() {
-    // t() handles both plain strings and functions (like cardAdded, suitSelected)
+    // t() handles both plain strings and functions (like cardAdded, colorSelected)
     els.instruction.textContent = t(_instrKey, ..._instrArgs);
 }
 
-function suitName(s) {
+function colorName(c) {
     return {
-        'C': t('suitClubs'),
-        'D': t('suitDiamonds'),
-        'S': t('suitSpades'),
-        'H': t('suitHearts')
-    }[s];
+        'R': t('colorRed'),
+        'Y': t('colorYellow'),
+        'G': t('colorGreen'),
+        'B': t('colorBlue')
+    }[c];
 }
 
 // ============================================================
@@ -970,11 +1107,17 @@ function refreshAllTexts() {
         if (i < btnKeys.length) btn.textContent = t(btnKeys[i]);
     });
 
-    // Suit buttons
-    els.suitBtnC.innerHTML = t('suitBtnClubs');
-    els.suitBtnD.innerHTML = t('suitBtnDiamonds');
-    els.suitBtnS.innerHTML = t('suitBtnSpades');
-    els.suitBtnH.innerHTML = t('suitBtnHearts');
+    // Deck config
+    els.btnLoadDeck.textContent = t('btnLoadDeck');
+    els.deckConfigStatus.textContent = customDeckLoaded ? t('deckLoaded', deckConfigTotal) : '';
+
+    // Color, type and wild buttons
+    els.colorBtnR.innerHTML = t('colorBtnRed');
+    els.colorBtnY.innerHTML = t('colorBtnYellow');
+    els.colorBtnG.innerHTML = t('colorBtnGreen');
+    els.colorBtnB.innerHTML = t('colorBtnBlue');
+    refreshTypeButtons();
+    refreshWildButtons();
 
     // Output labels
     els.labelEntropy.textContent = t('labelEntropy');
@@ -993,7 +1136,7 @@ function refreshAllTexts() {
     }
 
     // Round 2 prompt
-    els.round2Text.innerHTML = t('round2Prompt');
+    els.round2Text.innerHTML = t('round2Prompt', getSecondRoundCards());
     els.btnRound2.textContent = t('btnRound2');
 
     // Instruction bar — re-resolve from stored key (works in ALL states!)
@@ -1003,11 +1146,20 @@ function refreshAllTexts() {
 // ============================================================
 // Core Algorithm
 // ============================================================
-async function updateSalt() {
-    const msg = new TextEncoder().encode(tbSalt + Date.now().toString());
-    const hashBuffer = await crypto.subtle.digest('SHA-512', msg);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    tbSalt = btoa(String.fromCharCode(...hashArray));
+// SHA512(prevSalt + clickTimestamp); timestamp is captured at click time
+function updateSalt() {
+    const ts = Date.now().toString();
+    const my = epoch;
+    saltQueue = saltQueue.then(async () => {
+        if (my !== epoch) return;
+        const msg = new TextEncoder().encode(tbSalt + ts);
+        const hashBuffer = await crypto.subtle.digest('SHA-512', msg);
+        if (my !== epoch) return;
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        tbSalt = btoa(String.fromCharCode(...hashArray));
+        els.outputSalt.value = tbSalt;
+    });
+    return saltQueue;
 }
 
 async function finishGeneration() {
@@ -1067,58 +1219,68 @@ async function finishGeneration() {
 // Event Handlers
 // ============================================================
 
-// Suit selection (works in both COLLECTING and COLLECTING_ROUND2 states)
-els.suitBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        if (state !== 'COLLECTING' && state !== 'COLLECTING_ROUND2') return;
-        const suit = btn.dataset.suit;
-        selectSuit(suit);
-    });
-});
-
-function selectSuit(suit) {
-    activeSuit = suit;
-    els.suitBtns.forEach(b => {
-        b.classList.toggle('active', b.dataset.suit === suit);
-    });
-    refreshRankButtons();
-    updateInstruction('suitSelected', suit);
+function isCollecting() {
+    return state === 'COLLECTING' || state === 'COLLECTING_ROUND2';
 }
 
-// Rank click (works in both COLLECTING and COLLECTING_ROUND2 states)
-els.rankBtns.forEach(btn => {
-    btn.addEventListener('click', async () => {
-        if (state !== 'COLLECTING' && state !== 'COLLECTING_ROUND2') return;
-        if (!activeSuit) {
-            updateInstruction('pickSuitFirst');
-            return;
-        }
-        const rank = btn.dataset.rank;
-        await clickRank(rank);
+// Color selection (works in both COLLECTING and COLLECTING_ROUND2 states)
+els.colorBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (!isCollecting()) return;
+        selectColor(btn.dataset.color);
     });
 });
 
-async function clickRank(rank) {
-    if (usedCards[activeSuit].has(rank)) return;
+function selectColor(color) {
+    activeColor = color;
+    els.colorBtns.forEach(b => {
+        b.classList.toggle('active', b.dataset.color === color);
+    });
+    refreshTypeButtons();
+    updateInstruction('colorSelected', color);
+}
 
-    // Mark as used
-    usedCards[activeSuit].add(rank);
+// Type click (needs an active color)
+els.typeBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (!isCollecting()) return;
+        if (!activeColor) {
+            updateInstruction('pickColorFirst');
+            return;
+        }
+        const type = btn.dataset.type;
+        if (remaining[activeColor][type] <= 0) return;
+        remaining[activeColor][type]--;
+        // Card code, e.g. "5R", "+2Y", "STOPG", "REVB"
+        await registerCard(type + activeColor);
+    });
+});
+
+// Wild click (colorless, independent of active color)
+els.wildBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (!isCollecting()) return;
+        const kind = btn.dataset.wild;
+        if (remaining.WILD[kind] <= 0) return;
+        remaining.WILD[kind]--;
+        await registerCard(kind);
+    });
+});
+
+async function registerCard(cardName) {
     totalClicked++;
 
-    // Append to entropy (card name, e.g. "2C", "TH", "AS")
-    const cardName = rank + activeSuit;
     tbEnt += cardName;
     els.outputEnt.value = tbEnt;
 
-    // Update salt progressively (async crypto): SHA512(prevSalt + clickTimestamp)
-    await updateSalt();
-    els.outputSalt.value = tbSalt;
+    // Update salt progressively (queued async crypto): SHA512(prevSalt + clickTimestamp)
+    const saltDone = updateSalt();
 
-    // Disable the rank button for current active suit
-    refreshRankButtons();
+    refreshTypeButtons();
+    refreshWildButtons();
 
     // How many cards does the current round require?
-    const required = (round === 2) ? SECOND_ROUND_CARDS : getCardsRequired();
+    const required = (round === 2) ? getSecondRoundCards() : getCardsRequired();
 
     // Update progress
     els.progress.value = totalClicked;
@@ -1131,14 +1293,20 @@ async function clickRank(rank) {
             // Full deck drawn for 24 words — ask user to reshuffle
             transitionToRound2Prompt();
         } else {
+            // Block further clicks synchronously, then wait for every queued salt step
+            state = 'FINISHING';
+            const my = epoch;
+            await saltDone;
+            if (my !== epoch) return;
             await finishGeneration();
         }
     }
 }
 
-// Show the reshuffle prompt after 52 cards (24 words only)
+// Show the reshuffle prompt after the full deck (24 words only)
 function transitionToRound2Prompt() {
     state = 'ROUND2_PROMPT';
+    els.round2Text.innerHTML = t('round2Prompt', getSecondRoundCards());
     els.mainGrid.classList.add('hidden');
     els.round2Prompt.classList.remove('hidden');
     els.btnToggleSalt.disabled = true;
@@ -1149,19 +1317,21 @@ function transitionToRound2Prompt() {
 function startRound2() {
     state = 'COLLECTING_ROUND2';
     round = 2;
-    usedCards = { 'S': new Set(), 'H': new Set(), 'D': new Set(), 'C': new Set() };
+    remaining = cloneDeck(deckConfig);
     totalClicked = 0;
-    activeSuit = null;
+    activeColor = null;
 
+    const required = getSecondRoundCards();
     els.round2Prompt.classList.add('hidden');
     els.mainGrid.classList.remove('hidden');
-    els.progress.max = SECOND_ROUND_CARDS;
+    els.progress.max = required;
     els.progress.value = 0;
-    els.progressText.textContent = `0/${SECOND_ROUND_CARDS}`;
-    els.suitBtns.forEach(b => b.classList.remove('active'));
+    els.progressText.textContent = `0/${required}`;
+    els.colorBtns.forEach(b => b.classList.remove('active'));
     els.btnToggleSalt.disabled = false;
-    refreshRankButtons();
-    updateInstruction('round2Title');
+    refreshTypeButtons();
+    refreshWildButtons();
+    updateInstruction('round2Title', required);
 }
 
 // Start generation — called by length buttons
@@ -1188,8 +1358,10 @@ function startGeneration() {
     els.btnToggleSalt.disabled = false;
     els.saltField.classList.add('hidden');
     els.btnToggleSalt.textContent = t('showSalt');
-    updateInstruction('pickSuit');
-    refreshRankButtons();
+    els.colorBtns.forEach(b => b.classList.remove('active'));
+    updateInstruction('pickColor');
+    refreshTypeButtons();
+    refreshWildButtons();
 }
 
 // Length buttons — each starts the process directly
@@ -1231,10 +1403,47 @@ els.btnRestart.addEventListener('click', () => {
     els.btnRevealMnemonic.textContent = t('revealMnemonic');
     els.btnRevealMnemonic.classList.remove('btn-success');
     els.progress.value = 0;
-    els.progressText.textContent = '0/52';
-    activeSuit = null;
-    els.suitBtns.forEach(b => b.classList.remove('active'));
+    els.progressText.textContent = `0/${deckConfigTotal}`;
+    els.colorBtns.forEach(b => b.classList.remove('active'));
     updateInstruction('instructionIdle');
+});
+
+// ============================================================
+// Custom deck (deck.json from INIT.py)
+// ============================================================
+function parseDeck(obj) {
+    const deck = {};
+    const count = (v) => {
+        const n = Number(v);
+        if (!Number.isInteger(n) || n < 0) throw new Error('bad count');
+        return n;
+    };
+    COLORS.forEach(c => {
+        if (!obj[c]) throw new Error('missing color ' + c);
+        deck[c] = {};
+        TYPES.forEach(ty => { deck[c][ty] = count(obj[c][ty] ?? 0); });
+    });
+    const wild = obj.WILD || {};
+    deck.WILD = { WILD: count(wild.WILD ?? 0), WILD4: count(wild.WILD4 ?? 0) };
+    if (deckTotal(deck) === 0) throw new Error('empty deck');
+    return deck;
+}
+
+els.deckFileInput.addEventListener('change', async () => {
+    const file = els.deckFileInput.files[0];
+    if (!file) return;
+    try {
+        const deck = parseDeck(JSON.parse((await file.text()).replace(/^\uFEFF/, '')));
+        deckConfig = deck;
+        deckConfigTotal = deckTotal(deck);
+        customDeckLoaded = true;
+        remaining = cloneDeck(deckConfig);
+        els.deckConfigStatus.textContent = t('deckLoaded', deckConfigTotal);
+        els.progressText.textContent = `0/${deckConfigTotal}`;
+    } catch (err) {
+        els.deckConfigStatus.textContent = t('deckLoadError');
+    }
+    els.deckFileInput.value = '';
 });
 
 // ============================================================

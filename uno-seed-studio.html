@@ -1,0 +1,2402 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Offline guard: the page may not load or send anything over the network. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>UNO Seed Studio</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #E8EBEF;
+  --surface: #FFFFFF;
+  --surface-2: #F3F5F8;
+  --ink: #14161B;
+  --muted: #5B6270;
+  --line: #D3D8E0;
+  --felt: #DDE3EA;
+  --shadow: 0 1px 2px rgba(20,22,27,.06), 0 8px 24px rgba(20,22,27,.08);
+  --uno-r: #D7262B;
+  --uno-y: #F0BE0B;
+  --uno-g: #2E9A3B;
+  --uno-b: #1565C8;
+  --uno-k: #16171B;
+  --ok: #2E9A3B;
+  --warn: #B7791F;
+  --bad: #C0262B;
+  --focus: #1565C8;
+  --display: "Arial Black", "Segoe UI Black", "Helvetica Neue", Impact, system-ui, sans-serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, Menlo, monospace;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0E1014; --surface: #171A20; --surface-2: #1E222A; --ink: #ECEEF2; --muted: #9AA2AF;
+    --line: #2B303A; --felt: #12151A; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    --uno-k: #050608; --focus: #5B9BEA;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0E1014; --surface: #171A20; --surface-2: #1E222A; --ink: #ECEEF2; --muted: #9AA2AF;
+  --line: #2B303A; --felt: #12151A; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+  --uno-k: #050608; --focus: #5B9BEA;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.55 var(--sans);
+  padding-inline: 16px;
+  padding-block: 0 48px;
+  min-height: 100vh;
+}
+[hidden] { display: none !important; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.wrap { max-width: 1120px; margin: 0 auto; }
+.mono { font-family: var(--mono); }
+.muted { color: var(--muted); }
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h2 { font-family: var(--display); font-size: clamp(22px, 3.2vw, 30px); letter-spacing: -.01em; line-height: 1.1; }
+h3 { font-size: 16px; }
+.eyebrow { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- Header ---------- */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  margin-inline: -16px; padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.top-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.logo { width: 38px; height: 38px; transform: rotate(-12deg); }
+.brand h1 { font: 900 20px/1 var(--display); letter-spacing: -.02em; }
+.brand h1 i { color: var(--uno-r); font-style: italic; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px;
+  font: 600 12px/1 var(--sans); border: 1px solid var(--line); background: var(--surface);
+}
+.pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.pill.ok .dot { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+.pill.warn { border-color: var(--warn); color: var(--warn); }
+.pill.warn .dot { background: var(--warn); animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+.icon-btn {
+  min-width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); font-weight: 700; padding: 0 10px;
+}
+.icon-btn:hover { border-color: var(--ink); }
+
+/* ---------- Stepper ---------- */
+.stepper { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 12px; list-style: none; padding: 0; margin-bottom: 0; }
+.stepper li { min-width: 0; }
+.stepper button {
+  width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--surface); text-align: left; transition: border-color .15s, background .15s, opacity .15s;
+}
+.stepper button:disabled { opacity: .45; cursor: not-allowed; }
+.stepper .num {
+  flex: none; width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center;
+  font: 900 13px/1 var(--display); color: #fff; background: var(--muted); transform: rotate(-8deg);
+}
+.stepper li:nth-child(1) .num { background: var(--uno-r); }
+.stepper li:nth-child(2) .num { background: var(--uno-y); color: #1b1600; }
+.stepper li:nth-child(3) .num { background: var(--uno-g); }
+.stepper li:nth-child(4) .num { background: var(--uno-b); }
+.stepper li:nth-child(5) .num { background: var(--uno-k); }
+.stepper li:nth-child(6) .num { background: var(--ok); }
+.stepper .lbl { font-weight: 650; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stepper button[aria-current="step"] { border-color: var(--ink); background: var(--surface-2); box-shadow: inset 0 -3px 0 var(--ink); }
+.stepper button.done .num::after { content: "✓"; }
+.stepper button.done .num span { display: none; }
+@media (max-width: 720px) { .stepper .lbl { display: none; } .stepper button { justify-content: center; } }
+
+/* ---------- Guide strip ---------- */
+.guide {
+  margin-top: 16px; display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r);
+  background: var(--uno-k); color: #F4F5F7; box-shadow: var(--shadow);
+}
+.guide .who { flex: none; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: var(--uno-y); color: #1b1600; font: 900 16px/1 var(--display); transform: rotate(-6deg); }
+.guide p { margin: 0; }
+.guide .g-title { font-weight: 700; }
+.guide .g-body { color: #C9CDD5; font-size: 14px; }
+.guide.flash { animation: flash .5s ease; }
+@keyframes flash { 0% { transform: translateY(-4px); opacity: .4; } 100% { transform: none; opacity: 1; } }
+
+/* ---------- Panels ---------- */
+.panel { margin-top: 20px; animation: enter .28s cubic-bezier(.2,.8,.2,1); }
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px;
+}
+.stack { display: grid; gap: 16px; }
+.stack > *, .split > *, .card { min-width: 0; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.split { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; }
+.totals { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 130px); }
+@media (max-width: 880px) { .totals { position: static; } }
+@media (max-width: 880px) { .split { grid-template-columns: 1fr; } }
+.panel-head { display: flex; gap: 12px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+.panel-head p { margin: 6px 0 0; max-width: 62ch; color: var(--muted); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
+  font-weight: 650; transition: transform .12s, border-color .12s, background .12s;
+}
+.btn:hover:not(:disabled) { border-color: var(--ink); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 85%, var(--uno-r)); }
+.btn.go { background: var(--uno-r); border-color: var(--uno-r); color: #fff; font-family: var(--display); letter-spacing: .01em; padding: 12px 20px; }
+.btn.go:hover:not(:disabled) { background: #B81E23; border-color: #B81E23; }
+.btn.small { padding: 6px 10px; font-size: 13px; }
+.btn.copied { border-color: var(--ok); color: var(--ok); }
+.nav-row { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+.welcome { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; }
+.welcome p { margin: 4px 0 0; color: var(--muted); }
+@media (max-width: 640px) { .welcome { grid-template-columns: 1fr; } .welcome .fan { display: none; } }
+.fan { position: relative; width: 110px; height: 76px; }
+.fan .ucard { position: absolute; left: 30px; top: 2px; --w: 46px; transform-origin: 50% 110%; }
+.fan .ucard:nth-child(1) { transform: rotate(-24deg); }
+.fan .ucard:nth-child(2) { transform: rotate(-8deg); }
+.fan .ucard:nth-child(3) { transform: rotate(8deg); }
+.fan .ucard:nth-child(4) { transform: rotate(24deg); }
+
+/* ---------- UNO card ---------- */
+.ucard {
+  --w: 64px; --c: var(--uno-k);
+  width: var(--w); aspect-ratio: 5 / 7.6; max-width: 100%;
+  border-radius: calc(var(--w) * .12); background: var(--c);
+  border: calc(var(--w) * .055) solid #fff; box-shadow: 0 1px 0 rgba(0,0,0,.15), 0 4px 10px rgba(0,0,0,.18);
+  position: relative; display: grid; place-items: center; overflow: hidden; color: #fff; user-select: none;
+}
+.ucard::before {
+  content: ""; position: absolute; width: 78%; height: 88%; border-radius: 50%; background: #fff; transform: rotate(28deg);
+}
+.ucard .face {
+  position: relative; font: 900 calc(var(--w) * .42)/1 var(--display); color: var(--c);
+  text-shadow: calc(var(--w) * -.02) calc(var(--w) * .02) 0 rgba(0,0,0,.35); letter-spacing: -.04em;
+}
+.ucard .face.sym { font-size: calc(var(--w) * .38); }
+.ucard .face.word { font-size: calc(var(--w) * .17); letter-spacing: 0; text-shadow: none; font-weight: 900; }
+.ucard .corner { position: absolute; font: 900 calc(var(--w) * .15)/1 var(--display); color: #fff; }
+.ucard .corner.tl { top: 6%; left: 9%; }
+.ucard .corner.br { bottom: 6%; right: 9%; transform: rotate(180deg); }
+.ucard[data-c="R"] { --c: var(--uno-r); }
+.ucard[data-c="Y"] { --c: var(--uno-y); }
+.ucard[data-c="G"] { --c: var(--uno-g); }
+.ucard[data-c="B"] { --c: var(--uno-b); }
+.ucard[data-c="K"] { --c: #16171B; }
+.ucard[data-c="K"]::before { background: conic-gradient(var(--uno-r) 0 25%, var(--uno-b) 0 50%, var(--uno-g) 0 75%, var(--uno-y) 0); }
+.ucard[data-c="K"] .face { color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.6); }
+.ucard.back { --c: #16171B; }
+.ucard.back::before { background: var(--uno-r); }
+.ucard.back .face { color: var(--uno-y); font-style: italic; font-size: calc(var(--w) * .27); text-shadow: 0 2px 0 #000; transform: rotate(-18deg); }
+
+/* ---------- Deck editor ---------- */
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: none; padding: 8px 12px; font-weight: 600; font-size: 13px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.deck { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 760px; font-variant-numeric: tabular-nums; }
+table.deck th, table.deck td { padding: 4px; text-align: center; }
+table.deck thead th { font: 700 12px/1.2 var(--mono); color: var(--muted); padding-bottom: 8px; }
+table.deck tbody th { text-align: left; white-space: nowrap; font-weight: 700; padding-right: 10px; }
+table.deck tbody th .sw { display: inline-block; width: 12px; height: 18px; border-radius: 3px; vertical-align: -4px; margin-right: 8px; transform: rotate(-10deg); }
+table.deck tr.all th, table.deck tr.all td { background: var(--surface-2); }
+table.deck tr.all th:first-child { border-radius: 8px 0 0 8px; }
+table.deck tr.all td:last-child { border-radius: 0 8px 8px 0; }
+table.deck td.sum { font: 700 14px var(--mono); padding-left: 10px; }
+.num-in {
+  width: 44px; height: 34px; text-align: center; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--surface); font: 600 14px var(--mono); -moz-appearance: textfield;
+}
+.num-in::-webkit-inner-spin-button { opacity: .4; }
+.num-in.bump { animation: bump .25s; }
+@keyframes bump { 50% { transform: scale(1.15); border-color: var(--ink); } }
+.num-in.zero { color: var(--muted); background: var(--surface-2); }
+tr[data-row="R"] .num-in:not(.zero) { box-shadow: inset 0 -3px 0 var(--uno-r); }
+tr[data-row="Y"] .num-in:not(.zero) { box-shadow: inset 0 -3px 0 var(--uno-y); }
+tr[data-row="G"] .num-in:not(.zero) { box-shadow: inset 0 -3px 0 var(--uno-g); }
+tr[data-row="B"] .num-in:not(.zero) { box-shadow: inset 0 -3px 0 var(--uno-b); }
+.wild-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+.wild-row label { display: flex; align-items: center; gap: 10px; font-weight: 650; }
+.wild-row .ucard { --w: 34px; }
+
+.spec { display: flex; gap: 8px; flex-wrap: wrap; }
+.spec input { flex: 1 1 320px; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font: 14px var(--mono); }
+.hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.hint code, .legend code { font: 12px var(--mono); background: var(--surface-2); border: 1px solid var(--line); padding: 1px 5px; border-radius: 5px; }
+.msg { font-size: 13px; margin: 8px 0 0; min-height: 1.3em; }
+.msg.ok { color: var(--ok); } .msg.bad { color: var(--bad); }
+
+.drop {
+  border: 2px dashed var(--line); border-radius: var(--r); padding: 16px; text-align: center; transition: border-color .15s, background .15s;
+  display: grid; gap: 6px; justify-items: center;
+}
+.drop.over { border-color: var(--uno-b); background: color-mix(in srgb, var(--uno-b) 8%, transparent); }
+.drop strong { font-size: 15px; }
+textarea.json {
+  width: 100%; min-height: 140px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2);
+  font: 12px/1.45 var(--mono); padding: 10px; resize: vertical;
+}
+
+.totals { display: grid; gap: 10px; }
+.big-total { display: flex; align-items: baseline; gap: 10px; }
+.big-total b { font: 900 44px/1 var(--display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.bars { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--surface-2); }
+.bars span { transition: flex-grow .3s ease; flex-basis: 0; }
+table.req { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
+table.req th, table.req td { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: right; }
+table.req th:first-child, table.req td:first-child { text-align: left; }
+table.req thead th { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+
+/* ---------- Shuffle ---------- */
+.shuffle-stage { display: grid; place-items: center; height: 190px; position: relative; background: var(--felt); border-radius: var(--r); overflow: hidden; }
+.shuffle-stage .ucard { position: absolute; --w: 70px; }
+.anim .shuffle-stage .l { animation: riffleL 2.4s cubic-bezier(.5,0,.3,1) infinite; animation-delay: calc(var(--i) * 60ms); }
+.anim .shuffle-stage .r { animation: riffleR 2.4s cubic-bezier(.5,0,.3,1) infinite; animation-delay: calc(var(--i) * 60ms); }
+@keyframes riffleL {
+  0%, 12% { transform: translate(-70px, calc(var(--i) * -2px)) rotate(-10deg); }
+  40% { transform: translate(-70px, calc(var(--i) * -2px)) rotate(-24deg); }
+  70%, 100% { transform: translate(0, calc(var(--i) * -3px)) rotate(0deg); }
+}
+@keyframes riffleR {
+  0%, 12% { transform: translate(70px, calc(var(--i) * -2px)) rotate(10deg); }
+  40% { transform: translate(70px, calc(var(--i) * -2px)) rotate(24deg); }
+  70%, 100% { transform: translate(0, calc(var(--i) * -3px - 1.5px)) rotate(0deg); }
+}
+.pips { display: flex; gap: 6px; flex-wrap: wrap; }
+.pips i { width: 26px; height: 36px; border-radius: 5px; border: 2px dashed var(--line); display: block; transition: all .25s cubic-bezier(.3,1.6,.5,1); }
+.pips i.on { border: 2px solid #fff; background: var(--uno-r); transform: rotate(-8deg); box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.pips i.on:nth-child(4n+2) { background: var(--uno-y); }
+.pips i.on:nth-child(4n+3) { background: var(--uno-g); }
+.pips i.on:nth-child(4n+4) { background: var(--uno-b); }
+ol.steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.field { display: grid; gap: 6px; }
+.field input[type="text"], .field input[type="password"] { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font: 14px var(--mono); width: 100%; }
+
+/* ---------- Length ---------- */
+.lengths { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 720px) { .lengths { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.len {
+  border: 2px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 14px; text-align: left;
+  display: grid; gap: 4px; transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.len:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.len b { font: 900 34px/1 var(--display); letter-spacing: -.03em; }
+.len .k { font-size: 13px; color: var(--muted); }
+.len .n { font: 600 13px var(--mono); }
+.len[aria-pressed="true"] { border-color: var(--uno-r); box-shadow: 0 0 0 3px color-mix(in srgb, var(--uno-r) 25%, transparent); }
+.len .tag { justify-self: start; font: 700 10px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 6px; border-radius: 5px; background: var(--surface-2); color: var(--muted); }
+
+/* ---------- Draw ---------- */
+.draw-top { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; }
+.meter { height: 14px; background: var(--surface-2); border-radius: 7px; overflow: hidden; border: 1px solid var(--line); }
+.meter > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--uno-r) 0 25%, var(--uno-y) 0 50%, var(--uno-g) 0 75%, var(--uno-b) 0); background-size: 48px 100%; transition: width .25s ease; }
+.count { font: 900 28px/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.count small { font: 600 14px var(--mono); color: var(--muted); }
+.draw-grid { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 18px; margin-top: 16px; }
+@media (max-width: 880px) { .draw-grid { grid-template-columns: 1fr; } }
+.colors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.chip {
+  border: 0; border-radius: 12px; padding: 12px 8px; font: 900 15px/1 var(--display); color: #fff; letter-spacing: .01em;
+  display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; transition: transform .15s, box-shadow .15s;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,.2);
+}
+.chip[data-c="R"] { background: var(--uno-r); } .chip[data-c="Y"] { background: var(--uno-y); color: #1b1600; }
+.chip[data-c="G"] { background: var(--uno-g); } .chip[data-c="B"] { background: var(--uno-b); }
+.chip kbd { font: 700 11px var(--mono); background: rgba(255,255,255,.25); padding: 2px 5px; border-radius: 4px; }
+.chip[aria-pressed="true"] { transform: translateY(-3px); box-shadow: inset 0 -4px 0 rgba(0,0,0,.2), 0 0 0 3px var(--surface), 0 0 0 6px var(--ink); }
+.chip .left { font: 600 11px var(--mono); opacity: .85; }
+.hand { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; margin-top: 14px; }
+.cbtn { border: 0; background: none; padding: 0; position: relative; display: grid; justify-items: center; gap: 4px; transition: transform .15s; }
+.cbtn .ucard { --w: 70px; transition: transform .15s, filter .2s, opacity .2s; }
+.cbtn:hover:not(:disabled) .ucard { transform: translateY(-6px) rotate(-3deg); }
+.cbtn:active:not(:disabled) .ucard { transform: translateY(-2px) scale(.96); }
+.cbtn:disabled { cursor: not-allowed; }
+.cbtn:disabled .ucard { filter: grayscale(1); opacity: .28; }
+.cbtn .badge {
+  position: absolute; top: -6px; right: 2px; min-width: 22px; height: 22px; border-radius: 11px; padding: 0 6px;
+  background: var(--ink); color: var(--bg); font: 700 12px/22px var(--mono); text-align: center; z-index: 2;
+}
+.cbtn .key { font: 600 11px var(--mono); color: var(--muted); }
+.hand.idle .cbtn:not(.wildbtn) .ucard { --c: #8A919C; }
+.hand.idle .cbtn:not(.wildbtn) .ucard::before { background: #E9ECF0; }
+.divider { grid-column: 1 / -1; font: 600 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
+.pile-col { display: grid; gap: 12px; align-content: start; }
+.pile { position: relative; height: 170px; background: var(--felt); border-radius: var(--r); display: grid; place-items: center; overflow: hidden; }
+.pile .ucard { position: absolute; --w: 84px; }
+.pile .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 10px; }
+.flyer { position: fixed; z-index: 60; pointer-events: none; }
+.legend { font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.round2 { text-align: center; display: grid; gap: 14px; justify-items: center; padding: 26px 18px; }
+.round2 p { max-width: 52ch; margin: 0; color: var(--muted); }
+.tag-round { font: 700 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; background: var(--uno-b); color: #fff; }
+
+/* ---------- Result ---------- */
+.words { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; counter-reset: w; }
+.word {
+  perspective: 600px; height: 48px;
+}
+.word .in {
+  position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.3,1.3,.5,1);
+  transition-delay: calc(var(--i) * 35ms);
+}
+.words.shown .word .in { transform: rotateY(180deg); }
+.word .f, .word .b {
+  position: absolute; inset: 0; backface-visibility: hidden; border-radius: 10px; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+}
+.word .f { background: var(--uno-k); border: 3px solid #fff; box-shadow: 0 0 0 1px var(--line); color: var(--uno-y); font: 900 italic 15px var(--display); justify-content: center; }
+.word .b { background: var(--surface); border: 1px solid var(--line); transform: rotateY(180deg); }
+.word .b em { font: 600 12px var(--mono); color: var(--muted); font-style: normal; min-width: 20px; }
+.word .b span { font: 600 17px var(--mono); }
+.warnbox { border-left: 4px solid var(--warn); background: color-mix(in srgb, var(--warn) 10%, var(--surface)); padding: 12px 14px; border-radius: 0 10px 10px 0; font-size: 14px; }
+.warnbox strong { display: block; }
+
+/* ---------- Verify ---------- */
+#step5 .lead { margin: 0; color: var(--muted); max-width: 62ch; }
+.vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.vfield {
+  position: relative; display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); transition: border-color .15s, background .15s;
+}
+.vfield em { font: 600 12px var(--mono); color: var(--muted); font-style: normal; min-width: 20px; }
+.vfield input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: 600 17px var(--mono); outline: none; padding: 0; }
+.vfield:focus-within { border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 25%, transparent); z-index: 5; }
+.vfield.ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--surface)); }
+.vfield.ok::after { content: "✓"; color: var(--ok); font-weight: 900; }
+.vfield.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, var(--surface)); animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.ac {
+  position: absolute; left: -1px; right: -1px; top: calc(100% + 4px); z-index: 20; margin: 0; padding: 4px; list-style: none;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,.25);
+}
+.ac li { padding: 6px 8px; border-radius: 6px; font: 500 15px var(--mono); cursor: pointer; }
+.ac li b { color: var(--uno-b); }
+.ac li[aria-selected="true"] { background: var(--surface-2); box-shadow: inset 3px 0 0 var(--uno-b); }
+.ac .none { color: var(--muted); cursor: default; font-family: inherit; font-size: 13px; }
+.vdone { border-left: 5px solid var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--surface)); padding: 12px 14px; border-radius: 0 10px 10px 0; }
+.vdone strong { display: block; font-family: var(--display); font-size: 18px; }
+.bits { font: 12px/1.7 var(--mono); word-break: break-all; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.bits .cs { background: var(--uno-y); color: #1b1600; border-radius: 3px; padding: 0 2px; }
+.bits .sep { color: var(--muted); }
+details.more summary { cursor: pointer; font-weight: 650; }
+details.more[open] summary { margin-bottom: 10px; }
+.checks { display: grid; gap: 8px; }
+.checks label { display: flex; gap: 10px; align-items: flex-start; }
+.checks input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--uno-g); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 14px; font-variant-numeric: tabular-nums; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--mono); }
+
+.burst { position: fixed; z-index: 70; pointer-events: none; width: 10px; height: 14px; border-radius: 2px; border: 1.5px solid #fff; }
+
+/* ---------- Tour ---------- */
+.tour-shade { position: fixed; inset: 0; z-index: 80; }
+.tour-hole {
+  position: fixed; z-index: 81; border-radius: 12px; pointer-events: none;
+  box-shadow: 0 0 0 4px var(--uno-y), 0 0 0 9999px rgba(8,9,12,.62);
+  transition: all .3s cubic-bezier(.3,1,.4,1);
+}
+.tour-tip {
+  position: fixed; z-index: 82; width: min(360px, calc(100vw - 32px)); background: var(--surface); color: var(--ink);
+  border-radius: var(--r); padding: 16px; box-shadow: 0 20px 50px rgba(0,0,0,.35); border: 1px solid var(--line);
+  transition: top .3s cubic-bezier(.3,1,.4,1), left .3s cubic-bezier(.3,1,.4,1);
+}
+.tour-tip h3 { font: 900 17px/1.2 var(--display); margin-bottom: 6px; }
+.tour-tip p { margin: 0; font-size: 14px; color: var(--muted); }
+.tour-tip .row { justify-content: space-between; margin-top: 14px; }
+.tour-tip .prog { font: 600 12px var(--mono); color: var(--muted); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); opacity: 0;
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 90; transition: all .2s; max-width: calc(100vw - 32px);
+}
+.toast.on { opacity: 1; transform: translateX(-50%); }
+/* ---------- FAQ dialog ---------- */
+.faq {
+  width: min(780px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; overflow: auto; overscroll-behavior: contain;
+  border: 1px solid var(--line); border-radius: 18px; background: var(--surface); color: var(--ink); box-shadow: 0 24px 70px rgba(0,0,0,.4);
+}
+.faq[open] { animation: faqIn .2s cubic-bezier(.2,.8,.3,1); }
+.faq::backdrop { background: rgba(8,9,12,.6); backdrop-filter: blur(3px); }
+@keyframes faqIn { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+.faq-head {
+  position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line);
+}
+.faq-head h2 { margin-right: auto; font-size: clamp(19px, 3vw, 24px); }
+.faq-body { padding: 18px; display: grid; gap: 22px; }
+.faq-body p { margin: 0; }
+.faq-body h3 { font: 900 16px/1.2 var(--display); margin-bottom: 10px; }
+.faq-body code { font: 600 13px var(--mono); background: var(--surface-2); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
+.faq .tldr { border-left: 5px solid var(--uno-y); background: var(--surface-2); padding: 12px 14px; border-radius: 0 10px 10px 0; }
+.faq .tldr .eyebrow { display: block; margin-bottom: 4px; }
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; counter-reset: flow; }
+.flow li { list-style: none; position: relative; border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--surface-2); display: grid; gap: 6px; align-content: start; }
+.flow li b { font-size: 14px; }
+.flow li p { font-size: 13px; color: var(--muted); }
+.flow li .ex { font: 600 12px/1.3 var(--mono); color: var(--ink); background: var(--surface); border-radius: 7px; padding: 5px 7px; border: 1px dashed var(--line); }
+.flow .n { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: #fff; font: 900 14px/1 var(--display); transform: rotate(-8deg); }
+.flow li:nth-child(1) .n { background: var(--uno-r); }
+.flow li:nth-child(2) .n { background: var(--uno-y); color: #1b1600; }
+.flow li:nth-child(3) .n { background: var(--uno-g); }
+.flow li:nth-child(4) .n { background: var(--uno-b); }
+.flow li:not(:last-child)::after { content: "→"; position: absolute; right: -10px; top: 14px; font-weight: 900; color: var(--muted); z-index: 1; }
+@media (max-width: 720px) {
+  .flow { grid-template-columns: 1fr 1fr; }
+  .flow li:not(:last-child)::after { display: none; }
+}
+@media (max-width: 420px) { .flow { grid-template-columns: 1fr; } }
+.anat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.anat-chips button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; font-weight: 700; }
+.anat-chips button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.anat { display: flex; gap: 3px; flex-wrap: wrap; }
+.anat .seg { flex: 1 0 26px; height: 30px; border-radius: 6px; display: flex; overflow: hidden; border: 1px solid var(--line); background: var(--surface-2); font: 700 10px/28px var(--mono); color: var(--muted); }
+.anat .seg i { flex: 1; text-align: center; font-style: normal; }
+.anat .seg .cs { flex: none; background: var(--uno-y); color: #1b1600; text-align: center; }
+.anat-legend { font-size: 13px; color: var(--muted); margin-top: 8px; }
+.bitdemo { display: grid; gap: 12px; border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: var(--surface-2); }
+.bits11 { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 4px; }
+.bits11 button {
+  height: 44px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font: 900 18px/1 var(--mono);
+  transition: background .12s, color .12s, transform .12s;
+}
+.bits11 button[aria-pressed="true"] { background: var(--uno-b); color: #fff; border-color: var(--uno-b); }
+.bits11 button:active { transform: scale(.94); }
+.bits11 small { display: block; text-align: center; font: 600 9px var(--mono); color: var(--muted); margin-top: 3px; overflow: hidden; }
+.demo-out { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.demo-out .num { font: 900 26px/1 var(--mono); }
+.demo-out .word { font: 900 26px/1 var(--display); color: var(--uno-r); }
+.demo-out .word.pop { animation: pop .25s ease; }
+@keyframes pop { 40% { transform: scale(1.12); } }
+.demo-out .btn { margin-left: auto; }
+.qa { display: grid; gap: 8px; }
+.qa details { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.qa summary { cursor: pointer; padding: 12px 14px; font-weight: 700; list-style: none; display: flex; gap: 10px; align-items: center; }
+.qa summary::-webkit-details-marker { display: none; }
+.qa summary::after { content: "+"; margin-left: auto; font: 900 18px/1 var(--display); color: var(--muted); transition: transform .15s; }
+.qa details[open] summary::after { transform: rotate(45deg); }
+.qa details > div { padding: 0 14px 14px; color: var(--muted); font-size: 14px; }
+.qa details > div b { color: var(--ink); }
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+footer { margin-top: 32px; font-size: 12px; color: var(--muted); text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="6" y="2" width="28" height="36" rx="5" fill="#16171B" stroke="#fff" stroke-width="2"/>
+        <ellipse cx="20" cy="20" rx="10" ry="15" transform="rotate(28 20 20)" fill="#D7262B"/>
+        <text x="20" y="25" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="12" font-style="italic" fill="#F0BE0B">UNO</text>
+      </svg>
+      <h1>UNO <i>Seed</i> Studio</h1>
+    </div>
+    <span id="netPill" class="pill"><span class="dot"></span><span id="netText"></span></span>
+    <button id="btnTheme" class="icon-btn" type="button" aria-label="Theme">◐</button>
+    <button id="btnLang" class="icon-btn" type="button">EN</button>
+    <button id="btnFaq" class="icon-btn" type="button" aria-haspopup="dialog" data-i18n-aria="faqAria">FAQ</button>
+    <button id="btnTour" class="icon-btn" type="button" data-i18n-aria="tourBtn">?</button>
+  </div>
+  <ol class="stepper" id="stepper"></ol>
+</header>
+
+<div class="guide" id="guide" role="status" aria-live="polite">
+  <div class="who">!</div>
+  <div><p class="g-title" id="gTitle"></p><p class="g-body" id="gBody"></p></div>
+</div>
+
+<!-- ============ STEP 1: DECK ============ -->
+<section class="panel" data-step="0" id="step0">
+  <div class="stack">
+    <div class="card welcome" id="welcome">
+      <div class="fan" aria-hidden="true">
+        <div class="ucard" data-c="R" style="--w:46px"><span class="face">7</span></div>
+        <div class="ucard" data-c="Y" style="--w:46px"><span class="face">2</span></div>
+        <div class="ucard" data-c="G" style="--w:46px"><span class="face sym">⊘</span></div>
+        <div class="ucard" data-c="B" style="--w:46px"><span class="face">9</span></div>
+      </div>
+      <div>
+        <h3 data-i18n="welcomeTitle"></h3>
+        <p data-i18n="welcomeBody"></p>
+      </div>
+      <div class="row">
+        <button class="btn primary" id="btnStartTour" type="button" data-i18n="startTour"></button>
+        <button class="btn" id="btnWelcomeFaq" type="button" data-i18n="faqAria"></button>
+        <button class="btn" id="btnHideWelcome" type="button" data-i18n="skip"></button>
+      </div>
+    </div>
+
+    <div class="panel-head">
+      <div>
+        <span class="eyebrow" data-i18n="s1eyebrow"></span>
+        <h2 data-i18n="s1title"></h2>
+        <p data-i18n="s1lead"></p>
+      </div>
+      <div class="seg" id="presets" role="group">
+        <button type="button" data-preset="std" data-i18n="presetStd"></button>
+        <button type="button" data-preset="empty" data-i18n="presetEmpty"></button>
+      </div>
+    </div>
+
+    <div class="card" id="deckCard">
+      <div class="scroll-x">
+        <table class="deck" id="deckTable"></table>
+      </div>
+      <div class="wild-row" id="wildRow"></div>
+      <p class="hint" data-i18n="gridHint"></p>
+    </div>
+
+    <div class="split">
+      <div class="stack">
+        <div class="card" id="specCard">
+          <h3 data-i18n="specTitle"></h3>
+          <p class="hint" data-i18n-html="specHint"></p>
+          <div class="spec" style="margin-top:10px">
+            <input id="specInput" type="text" spellcheck="false" autocomplete="off" value="0 fcc1, 1-9 fcc2, +2,stop,reverse fcc2, wildcolor x4, wild+4 x4">
+            <button class="btn primary" id="btnSpec" type="button" data-i18n="apply"></button>
+          </div>
+          <p class="msg" id="specMsg"></p>
+        </div>
+
+        <div class="card stack" id="fileCard">
+          <label class="drop" id="drop" for="deckFile">
+            <strong data-i18n="dropTitle"></strong>
+            <span class="hint" data-i18n="dropHint"></span>
+            <span class="btn small" aria-hidden="true" data-i18n="chooseFile"></span>
+          </label>
+          <input id="deckFile" type="file" accept=".json,application/json" class="sr">
+          <div class="row">
+            <button class="btn small" id="btnPaste" type="button" data-i18n="pasteJson"></button>
+            <button class="btn small" id="btnCopyDeck" type="button" data-i18n="copyDeck"></button>
+            <button class="btn small" id="btnSaveDeck" type="button" data-i18n="saveDeck"></button>
+          </div>
+          <div id="pasteBox" hidden class="stack">
+            <textarea id="pasteArea" class="json" spellcheck="false" data-i18n-ph="pastePh"></textarea>
+            <div class="row"><button class="btn small primary" id="btnPasteApply" type="button" data-i18n="apply"></button></div>
+          </div>
+          <p class="msg" id="fileMsg"></p>
+        </div>
+      </div>
+
+      <div class="card totals" id="totalsCard">
+        <span class="eyebrow" data-i18n="deckSummary"></span>
+        <div class="big-total"><b id="deckTotal">108</b><span class="muted" data-i18n="cardsWord"></span></div>
+        <div class="bars" id="deckBars" aria-hidden="true"></div>
+        <table class="req" id="reqTable"></table>
+      </div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <span></span>
+    <button class="btn go" id="toStep1" type="button" data-i18n="nextShuffle"></button>
+  </div>
+</section>
+
+<!-- ============ STEP 2: SHUFFLE ============ -->
+<section class="panel" data-step="1" id="step1" hidden>
+  <div class="panel-head">
+    <div>
+      <span class="eyebrow" data-i18n="s2eyebrow"></span>
+      <h2 data-i18n="s2title"></h2>
+      <p data-i18n="s2lead"></p>
+    </div>
+  </div>
+  <div class="split" style="margin-top:16px">
+    <div class="card stack">
+      <div class="shuffle-stage" id="shuffleStage" aria-hidden="true"></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="pips" id="pips"></div>
+        <button class="btn primary" id="btnShuffled" type="button" data-i18n="didShuffle"></button>
+      </div>
+      <ol class="steps">
+        <li data-i18n="sh1"></li>
+        <li data-i18n="sh2"></li>
+        <li data-i18n="sh3"></li>
+      </ol>
+    </div>
+    <div class="stack">
+      <div class="card stack">
+        <h3 data-i18n="offlineTitle"></h3>
+        <ul class="checks" style="list-style:none;padding:0;margin:0" id="offlineList"></ul>
+      </div>
+      <div class="card field">
+        <label for="saltInput"><b data-i18n="saltTitle"></b></label>
+        <input id="saltInput" type="password" autocomplete="off" spellcheck="false">
+        <p class="hint" data-i18n="saltHint"></p>
+        <p class="msg bad" id="saltMsg" data-i18n="saltAscii" hidden></p>
+      </div>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="btn" type="button" data-goto="0" data-i18n="back"></button>
+    <button class="btn go" id="toStep2" type="button" data-i18n="nextLength"></button>
+  </div>
+</section>
+
+<!-- ============ STEP 3: LENGTH ============ -->
+<section class="panel" data-step="2" id="step2" hidden>
+  <div class="panel-head">
+    <div>
+      <span class="eyebrow" data-i18n="s3eyebrow"></span>
+      <h2 data-i18n="s3title"></h2>
+      <p data-i18n="s3lead"></p>
+    </div>
+  </div>
+  <div class="lengths" id="lengths" style="margin-top:16px"></div>
+  <div class="nav-row">
+    <button class="btn" type="button" data-goto="1" data-i18n="back"></button>
+    <button class="btn go" id="btnBegin" type="button" data-i18n="begin"></button>
+  </div>
+</section>
+
+<!-- ============ STEP 4: DRAW ============ -->
+<section class="panel" data-step="3" id="step3" hidden>
+  <div class="card" id="drawCard">
+    <div class="draw-top">
+      <div class="stack" style="gap:8px">
+        <div class="row" style="justify-content:space-between">
+          <span class="eyebrow" id="roundLabel"></span>
+          <span class="count" id="count">0<small> / 0</small></span>
+        </div>
+        <div class="meter"><i id="meterFill"></i></div>
+      </div>
+    </div>
+
+    <div id="drawArea">
+      <div class="draw-grid">
+        <div>
+          <div class="colors" id="colors" role="group"></div>
+          <div class="hand idle" id="hand"></div>
+        </div>
+        <div class="pile-col">
+          <div class="pile" id="pile"><div class="empty" data-i18n="pileEmpty"></div></div>
+          <button class="btn" id="btnUndo" type="button" disabled data-i18n="undo"></button>
+          <div class="legend" id="legend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="round2" class="round2" hidden>
+      <span class="tag-round" data-i18n="round2tag"></span>
+      <div class="shuffle-stage" style="width:min(320px,100%)" id="shuffleStage2" aria-hidden="true"></div>
+      <h2 data-i18n="round2title"></h2>
+      <p id="round2text"></p>
+      <button class="btn go" id="btnRound2" type="button" data-i18n="round2go"></button>
+    </div>
+  </div>
+  <div class="nav-row">
+    <button class="btn" id="btnAbort" type="button" data-i18n="abort"></button>
+    <span class="hint" data-i18n="noBack"></span>
+  </div>
+</section>
+
+<!-- ============ STEP 5: RESULT ============ -->
+<section class="panel" data-step="4" id="step4" hidden>
+  <div class="split">
+    <div class="card stack">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow" data-i18n="s5eyebrow"></span>
+          <h2 data-i18n="s5title"></h2>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="btnReveal" type="button" data-i18n="reveal"></button>
+          <button class="btn" id="btnCopyWords" type="button" disabled data-i18n="copyWords"></button>
+        </div>
+      </div>
+      <div class="words" id="words"></div>
+      <div class="warnbox"><strong data-i18n="paperTitle"></strong><span data-i18n="paperBody"></span></div>
+      <details class="more">
+        <summary data-i18n="details"></summary>
+        <div class="stack">
+          <dl class="kv" id="kv"></dl>
+          <div><span class="eyebrow" data-i18n="bitsLabel"></span><div class="bits" id="bits"></div></div>
+          <div><span class="eyebrow" data-i18n="entLabel"></span><div class="bits" id="entOut"></div></div>
+          <div><span class="eyebrow" data-i18n="saltLabel"></span><div class="bits" id="saltOut"></div></div>
+        </div>
+      </details>
+    </div>
+    <div class="stack">
+      <div class="card stack">
+        <h3 data-i18n="safetyTitle"></h3>
+        <div class="checks" id="safety"></div>
+      </div>
+      <button class="btn primary" id="btnToVerify" type="button" data-i18n="toVerify"></button>
+      <button class="btn go" id="btnNew" type="button" data-i18n="newSeed"></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STEP 6: VERIFY ============ -->
+<section class="panel" data-step="5" id="step5" hidden>
+  <div class="split">
+    <div class="card stack">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow" data-i18n="s6eyebrow"></span>
+          <h2 data-i18n="s6title"></h2>
+        </div>
+        <span class="count" id="vCount">0<small> / 0</small></span>
+      </div>
+      <p class="lead" data-i18n="s6lead"></p>
+      <div class="vgrid" id="vgrid"></div>
+      <div class="vdone" id="vDone" hidden><strong data-i18n="vDoneTitle"></strong><span id="vDoneText"></span></div>
+    </div>
+    <div class="stack">
+      <div class="card stack">
+        <h3 data-i18n="vHowTitle"></h3>
+        <p class="lead" data-i18n="vHow"></p>
+        <p class="msg" id="vMistakes"></p>
+      </div>
+      <button class="btn" id="btnVerifyShuffle" type="button" data-i18n="vReshuffle"></button>
+      <button class="btn" id="btnBackToResult" type="button" data-i18n="vBack"></button>
+      <button class="btn go" id="btnNew2" type="button" data-i18n="newSeed"></button>
+    </div>
+  </div>
+</section>
+
+<footer data-i18n="footer"></footer>
+</div>
+
+<dialog class="faq" id="faq" aria-labelledby="faqTitle">
+  <div class="faq-head">
+    <h2 id="faqTitle"></h2>
+    <button class="icon-btn" id="btnFaqClose" type="button" data-i18n-aria="close">✕</button>
+  </div>
+  <div class="faq-body">
+    <p class="muted" id="faqLead"></p>
+    <div class="tldr"><span class="eyebrow" id="faqTldrTitle"></span><p id="faqTldr"></p></div>
+    <section><h3 id="faqFlowTitle"></h3><ol class="flow" id="faqFlow" style="padding:0;margin:0"></ol></section>
+    <section>
+      <h3 id="faqAnatTitle"></h3>
+      <div class="anat-chips" id="anatChips"></div>
+      <div class="anat" id="anat" aria-hidden="true"></div>
+      <p class="anat-legend" id="anatLegend"></p>
+    </section>
+    <section class="bitdemo">
+      <div><h3 id="faqDemoTitle"></h3><p class="muted" id="faqDemoBody" style="font-size:14px"></p></div>
+      <div class="bits11" id="bits11"></div>
+      <div class="demo-out" aria-live="polite">
+        <span><span class="eyebrow" id="demoNumLbl"></span><br><span class="num" id="demoNum"></span></span>
+        <span><span class="eyebrow" id="demoWordLbl"></span><br><span class="word" id="demoWord"></span></span>
+        <button class="btn small" id="demoZero" type="button"></button>
+        <button class="btn small" id="demoMax" type="button"></button>
+      </div>
+      <p class="muted" id="faqDemoNote" style="font-size:13px"></p>
+    </section>
+    <section><h3 id="faqQaTitle"></h3><div class="qa" id="faqQa"></div></section>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+// ============================================================
+// BIP39 English wordlist (same list as index.html / english.txt)
+// ============================================================
+const BIP39_WORDS = [
+"abandon","ability","able","about","above","absent","absorb","abstract","absurd","abuse","access","accident","account","accuse","achieve","acid",
+"acoustic","acquire","across","act","action","actor","actress","actual","adapt","add","addict","address","adjust","admit","adult","advance",
+"advice","aerobic","affair","afford","afraid","again","age","agent","agree","ahead","aim","air","airport","aisle","alarm","album",
+"alcohol","alert","alien","all","alley","allow","almost","alone","alpha","already","also","alter","always","amateur","amazing","among",
+"amount","amused","analyst","anchor","ancient","anger","angle","angry","animal","ankle","announce","annual","another","answer","antenna","antique",
+"anxiety","any","apart","apology","appear","apple","approve","april","arch","arctic","area","arena","argue","arm","armed","armor",
+"army","around","arrange","arrest","arrive","arrow","art","artefact","artist","artwork","ask","aspect","assault","asset","assist","assume",
+"asthma","athlete","atom","attack","attend","attitude","attract","auction","audit","august","aunt","author","auto","autumn","average","avocado",
+"avoid","awake","aware","away","awesome","awful","awkward","axis","baby","bachelor","bacon","badge","bag","balance","balcony","ball",
+"bamboo","banana","banner","bar","barely","bargain","barrel","base","basic","basket","battle","beach","bean","beauty","because","become",
+"beef","before","begin","behave","behind","believe","below","belt","bench","benefit","best","betray","better","between","beyond","bicycle",
+"bid","bike","bind","biology","bird","birth","bitter","black","blade","blame","blanket","blast","bleak","bless","blind","blood",
+"blossom","blouse","blue","blur","blush","board","boat","body","boil","bomb","bone","bonus","book","boost","border","boring",
+"borrow","boss","bottom","bounce","box","boy","bracket","brain","brand","brass","brave","bread","breeze","brick","bridge","brief",
+"bright","bring","brisk","broccoli","broken","bronze","broom","brother","brown","brush","bubble","buddy","budget","buffalo","build","bulb",
+"bulk","bullet","bundle","bunker","burden","burger","burst","bus","business","busy","butter","buyer","buzz","cabbage","cabin","cable",
+"cactus","cage","cake","call","calm","camera","camp","can","canal","cancel","candy","cannon","canoe","canvas","canyon","capable",
+"capital","captain","car","carbon","card","cargo","carpet","carry","cart","case","cash","casino","castle","casual","cat","catalog",
+"catch","category","cattle","caught","cause","caution","cave","ceiling","celery","cement","census","century","cereal","certain","chair","chalk",
+"champion","change","chaos","chapter","charge","chase","chat","cheap","check","cheese","chef","cherry","chest","chicken","chief","child",
+"chimney","choice","choose","chronic","chuckle","chunk","churn","cigar","cinnamon","circle","citizen","city","civil","claim","clap","clarify",
+"claw","clay","clean","clerk","clever","click","client","cliff","climb","clinic","clip","clock","clog","close","cloth","cloud",
+"clown","club","clump","cluster","clutch","coach","coast","coconut","code","coffee","coil","coin","collect","color","column","combine",
+"come","comfort","comic","common","company","concert","conduct","confirm","congress","connect","consider","control","convince","cook","cool","copper",
+"copy","coral","core","corn","correct","cost","cotton","couch","country","couple","course","cousin","cover","coyote","crack","cradle",
+"craft","cram","crane","crash","crater","crawl","crazy","cream","credit","creek","crew","cricket","crime","crisp","critic","crop",
+"cross","crouch","crowd","crucial","cruel","cruise","crumble","crunch","crush","cry","crystal","cube","culture","cup","cupboard","curious",
+"current","curtain","curve","cushion","custom","cute","cycle","dad","damage","damp","dance","danger","daring","dash","daughter","dawn",
+"day","deal","debate","debris","decade","december","decide","decline","decorate","decrease","deer","defense","define","defy","degree","delay",
+"deliver","demand","demise","denial","dentist","deny","depart","depend","deposit","depth","deputy","derive","describe","desert","design","desk",
+"despair","destroy","detail","detect","develop","device","devote","diagram","dial","diamond","diary","dice","diesel","diet","differ","digital",
+"dignity","dilemma","dinner","dinosaur","direct","dirt","disagree","discover","disease","dish","dismiss","disorder","display","distance","divert","divide",
+"divorce","dizzy","doctor","document","dog","doll","dolphin","domain","donate","donkey","donor","door","dose","double","dove","draft",
+"dragon","drama","drastic","draw","dream","dress","drift","drill","drink","drip","drive","drop","drum","dry","duck","dumb",
+"dune","during","dust","dutch","duty","dwarf","dynamic","eager","eagle","early","earn","earth","easily","east","easy","echo",
+"ecology","economy","edge","edit","educate","effort","egg","eight","either","elbow","elder","electric","elegant","element","elephant","elevator",
+"elite","else","embark","embody","embrace","emerge","emotion","employ","empower","empty","enable","enact","end","endless","endorse","enemy",
+"energy","enforce","engage","engine","enhance","enjoy","enlist","enough","enrich","enroll","ensure","enter","entire","entry","envelope","episode",
+"equal","equip","era","erase","erode","erosion","error","erupt","escape","essay","essence","estate","eternal","ethics","evidence","evil",
+"evoke","evolve","exact","example","excess","exchange","excite","exclude","excuse","execute","exercise","exhaust","exhibit","exile","exist","exit",
+"exotic","expand","expect","expire","explain","expose","express","extend","extra","eye","eyebrow","fabric","face","faculty","fade","faint",
+"faith","fall","false","fame","family","famous","fan","fancy","fantasy","farm","fashion","fat","fatal","father","fatigue","fault",
+"favorite","feature","february","federal","fee","feed","feel","female","fence","festival","fetch","fever","few","fiber","fiction","field",
+"figure","file","film","filter","final","find","fine","finger","finish","fire","firm","first","fiscal","fish","fit","fitness",
+"fix","flag","flame","flash","flat","flavor","flee","flight","flip","float","flock","floor","flower","fluid","flush","fly",
+"foam","focus","fog","foil","fold","follow","food","foot","force","forest","forget","fork","fortune","forum","forward","fossil",
+"foster","found","fox","fragile","frame","frequent","fresh","friend","fringe","frog","front","frost","frown","frozen","fruit","fuel",
+"fun","funny","furnace","fury","future","gadget","gain","galaxy","gallery","game","gap","garage","garbage","garden","garlic","garment",
+"gas","gasp","gate","gather","gauge","gaze","general","genius","genre","gentle","genuine","gesture","ghost","giant","gift","giggle",
+"ginger","giraffe","girl","give","glad","glance","glare","glass","glide","glimpse","globe","gloom","glory","glove","glow","glue",
+"goat","goddess","gold","good","goose","gorilla","gospel","gossip","govern","gown","grab","grace","grain","grant","grape","grass",
+"gravity","great","green","grid","grief","grit","grocery","group","grow","grunt","guard","guess","guide","guilt","guitar","gun",
+"gym","habit","hair","half","hammer","hamster","hand","happy","harbor","hard","harsh","harvest","hat","have","hawk","hazard",
+"head","health","heart","heavy","hedgehog","height","hello","helmet","help","hen","hero","hidden","high","hill","hint","hip",
+"hire","history","hobby","hockey","hold","hole","holiday","hollow","home","honey","hood","hope","horn","horror","horse","hospital",
+"host","hotel","hour","hover","hub","huge","human","humble","humor","hundred","hungry","hunt","hurdle","hurry","hurt","husband",
+"hybrid","ice","icon","idea","identify","idle","ignore","ill","illegal","illness","image","imitate","immense","immune","impact","impose",
+"improve","impulse","inch","include","income","increase","index","indicate","indoor","industry","infant","inflict","inform","inhale","inherit","initial",
+"inject","injury","inmate","inner","innocent","input","inquiry","insane","insect","inside","inspire","install","intact","interest","into","invest",
+"invite","involve","iron","island","isolate","issue","item","ivory","jacket","jaguar","jar","jazz","jealous","jeans","jelly","jewel",
+"job","join","joke","journey","joy","judge","juice","jump","jungle","junior","junk","just","kangaroo","keen","keep","ketchup",
+"key","kick","kid","kidney","kind","kingdom","kiss","kit","kitchen","kite","kitten","kiwi","knee","knife","knock","know",
+"lab","label","labor","ladder","lady","lake","lamp","language","laptop","large","later","latin","laugh","laundry","lava","law",
+"lawn","lawsuit","layer","lazy","leader","leaf","learn","leave","lecture","left","leg","legal","legend","leisure","lemon","lend",
+"length","lens","leopard","lesson","letter","level","liar","liberty","library","license","life","lift","light","like","limb","limit",
+"link","lion","liquid","list","little","live","lizard","load","loan","lobster","local","lock","logic","lonely","long","loop",
+"lottery","loud","lounge","love","loyal","lucky","luggage","lumber","lunar","lunch","luxury","lyrics","machine","mad","magic","magnet",
+"maid","mail","main","major","make","mammal","man","manage","mandate","mango","mansion","manual","maple","marble","march","margin",
+"marine","market","marriage","mask","mass","master","match","material","math","matrix","matter","maximum","maze","meadow","mean","measure",
+"meat","mechanic","medal","media","melody","melt","member","memory","mention","menu","mercy","merge","merit","merry","mesh","message",
+"metal","method","middle","midnight","milk","million","mimic","mind","minimum","minor","minute","miracle","mirror","misery","miss","mistake",
+"mix","mixed","mixture","mobile","model","modify","mom","moment","monitor","monkey","monster","month","moon","moral","more","morning",
+"mosquito","mother","motion","motor","mountain","mouse","move","movie","much","muffin","mule","multiply","muscle","museum","mushroom","music",
+"must","mutual","myself","mystery","myth","naive","name","napkin","narrow","nasty","nation","nature","near","neck","need","negative",
+"neglect","neither","nephew","nerve","nest","net","network","neutral","never","news","next","nice","night","noble","noise","nominee",
+"noodle","normal","north","nose","notable","note","nothing","notice","novel","now","nuclear","number","nurse","nut","oak","obey",
+"object","oblige","obscure","observe","obtain","obvious","occur","ocean","october","odor","off","offer","office","often","oil","okay",
+"old","olive","olympic","omit","once","one","onion","online","only","open","opera","opinion","oppose","option","orange","orbit",
+"orchard","order","ordinary","organ","orient","original","orphan","ostrich","other","outdoor","outer","output","outside","oval","oven","over",
+"own","owner","oxygen","oyster","ozone","pact","paddle","page","pair","palace","palm","panda","panel","panic","panther","paper",
+"parade","parent","park","parrot","party","pass","patch","path","patient","patrol","pattern","pause","pave","payment","peace","peanut",
+"pear","peasant","pelican","pen","penalty","pencil","people","pepper","perfect","permit","person","pet","phone","photo","phrase","physical",
+"piano","picnic","picture","piece","pig","pigeon","pill","pilot","pink","pioneer","pipe","pistol","pitch","pizza","place","planet",
+"plastic","plate","play","please","pledge","pluck","plug","plunge","poem","poet","point","polar","pole","police","pond","pony",
+"pool","popular","portion","position","possible","post","potato","pottery","poverty","powder","power","practice","praise","predict","prefer","prepare",
+"present","pretty","prevent","price","pride","primary","print","priority","prison","private","prize","problem","process","produce","profit","program",
+"project","promote","proof","property","prosper","protect","proud","provide","public","pudding","pull","pulp","pulse","pumpkin","punch","pupil",
+"puppy","purchase","purity","purpose","purse","push","put","puzzle","pyramid","quality","quantum","quarter","question","quick","quit","quiz",
+"quote","rabbit","raccoon","race","rack","radar","radio","rail","rain","raise","rally","ramp","ranch","random","range","rapid",
+"rare","rate","rather","raven","raw","razor","ready","real","reason","rebel","rebuild","recall","receive","recipe","record","recycle",
+"reduce","reflect","reform","refuse","region","regret","regular","reject","relax","release","relief","rely","remain","remember","remind","remove",
+"render","renew","rent","reopen","repair","repeat","replace","report","require","rescue","resemble","resist","resource","response","result","retire",
+"retreat","return","reunion","reveal","review","reward","rhythm","rib","ribbon","rice","rich","ride","ridge","rifle","right","rigid",
+"ring","riot","ripple","risk","ritual","rival","river","road","roast","robot","robust","rocket","romance","roof","rookie","room",
+"rose","rotate","rough","round","route","royal","rubber","rude","rug","rule","run","runway","rural","sad","saddle","sadness",
+"safe","sail","salad","salmon","salon","salt","salute","same","sample","sand","satisfy","satoshi","sauce","sausage","save","say",
+"scale","scan","scare","scatter","scene","scheme","school","science","scissors","scorpion","scout","scrap","screen","script","scrub","sea",
+"search","season","seat","second","secret","section","security","seed","seek","segment","select","sell","seminar","senior","sense","sentence",
+"series","service","session","settle","setup","seven","shadow","shaft","shallow","share","shed","shell","sheriff","shield","shift","shine",
+"ship","shiver","shock","shoe","shoot","shop","short","shoulder","shove","shrimp","shrug","shuffle","shy","sibling","sick","side",
+"siege","sight","sign","silent","silk","silly","silver","similar","simple","since","sing","siren","sister","situate","six","size",
+"skate","sketch","ski","skill","skin","skirt","skull","slab","slam","sleep","slender","slice","slide","slight","slim","slogan",
+"slot","slow","slush","small","smart","smile","smoke","smooth","snack","snake","snap","sniff","snow","soap","soccer","social",
+"sock","soda","soft","solar","soldier","solid","solution","solve","someone","song","soon","sorry","sort","soul","sound","soup",
+"source","south","space","spare","spatial","spawn","speak","special","speed","spell","spend","sphere","spice","spider","spike","spin",
+"spirit","split","spoil","sponsor","spoon","sport","spot","spray","spread","spring","spy","square","squeeze","squirrel","stable","stadium",
+"staff","stage","stairs","stamp","stand","start","state","stay","steak","steel","stem","step","stereo","stick","still","sting",
+"stock","stomach","stone","stool","story","stove","strategy","street","strike","strong","struggle","student","stuff","stumble","style","subject",
+"submit","subway","success","such","sudden","suffer","sugar","suggest","suit","summer","sun","sunny","sunset","super","supply","supreme",
+"sure","surface","surge","surprise","surround","survey","suspect","sustain","swallow","swamp","swap","swarm","swear","sweet","swift","swim",
+"swing","switch","sword","symbol","symptom","syrup","system","table","tackle","tag","tail","talent","talk","tank","tape","target",
+"task","taste","tattoo","taxi","teach","team","tell","ten","tenant","tennis","tent","term","test","text","thank","that",
+"theme","then","theory","there","they","thing","this","thought","three","thrive","throw","thumb","thunder","ticket","tide","tiger",
+"tilt","timber","time","tiny","tip","tired","tissue","title","toast","tobacco","today","toddler","toe","together","toilet","token",
+"tomato","tomorrow","tone","tongue","tonight","tool","tooth","top","topic","topple","torch","tornado","tortoise","toss","total","tourist",
+"toward","tower","town","toy","track","trade","traffic","tragic","train","transfer","trap","trash","travel","tray","treat","tree",
+"trend","trial","tribe","trick","trigger","trim","trip","trophy","trouble","truck","true","truly","trumpet","trust","truth","try",
+"tube","tuition","tumble","tuna","tunnel","turkey","turn","turtle","twelve","twenty","twice","twin","twist","two","type","typical",
+"ugly","umbrella","unable","unaware","uncle","uncover","under","undo","unfair","unfold","unhappy","uniform","unique","unit","universe","unknown",
+"unlock","until","unusual","unveil","update","upgrade","uphold","upon","upper","upset","urban","urge","usage","use","used","useful",
+"useless","usual","utility","vacant","vacuum","vague","valid","valley","valve","van","vanish","vapor","various","vast","vault","vehicle",
+"velvet","vendor","venture","venue","verb","verify","version","very","vessel","veteran","viable","vibrant","vicious","victory","video","view",
+"village","vintage","violin","virtual","virus","visa","visit","visual","vital","vivid","vocal","voice","void","volcano","volume","vote",
+"voyage","wage","wagon","wait","walk","wall","walnut","want","warfare","warm","warrior","wash","wasp","waste","water","wave",
+"way","wealth","weapon","wear","weasel","weather","web","wedding","weekend","weird","welcome","west","wet","whale","what","wheat",
+"wheel","when","where","whip","whisper","wide","width","wife","wild","will","win","window","wine","wing","wink","winner",
+"winter","wire","wisdom","wise","wish","witness","wolf","woman","wonder","wood","wool","word","work","world","worry","worth",
+"wrap","wreck","wrestle","wrist","write","wrong","yard","year","yellow","you","young","youth","zebra","zero","zone","zoo"
+];
+
+// ============================================================
+// i18n
+// ============================================================
+const I18N = {
+  pl: {
+    steps: ['Talia', 'Tasowanie', 'Długość', 'Karty', 'Wynik', 'Sprawdzenie'],
+    netOffline: 'Offline', netOnline: 'Online: odłącz sieć',
+    tourBtn: 'Samouczek',
+    faqAria: 'Jak działa fraza? (FAQ)', close: 'Zamknij',
+    welcomeTitle: 'Seed z prawdziwej talii UNO',
+    welcomeBody: 'Pokażę Ci krok po kroku, jak z potasowanych kart zrobić frazę BIP39. Najpierw ustawiamy, jakie karty masz w pudełku.',
+    startTour: 'Pokaż samouczek', skip: 'Pomiń',
+    s1eyebrow: 'Krok 1 z 6', s1title: 'Ile kart masz w talii?',
+    s1lead: 'Wpisz liczbę każdej karty w każdym kolorze. Wiersz „Wszystkie” ustawia cztery kolory naraz. Standardowe UNO ma 108 kart.',
+    presetStd: 'Standard 108', presetEmpty: 'Wyczyść',
+    colAll: 'Wszystkie', colSum: 'Razem',
+    gridHint: 'Kliknij pole i użyj strzałek ↑/↓ albo wpisz liczbę. Puste pole to 0.',
+    specTitle: 'Szybki zapis (jak w INIT.py)',
+    specHint: '<code>fcc2</code> każdy kolor 2×, <code>R2 Y1 G2 B0</code> osobno, <code>x4</code> dla wildów, <code>1-9</code> zakres. Karty bez liczby biorą liczbę następnej.',
+    apply: 'Zastosuj',
+    specOk: n => `Zastosowano. Talia ma ${n} kart.`,
+    deckSummary: 'Twoja talia', cardsWord: 'kart',
+    reqWords: 'Słowa', reqCards: 'Kart do wyłożenia', reqRounds: 'Rundy',
+    dropTitle: 'Wczytaj deck.json', dropHint: 'Przeciągnij plik tutaj (np. z INIT.py) albo wybierz z dysku.',
+    chooseFile: 'Wybierz plik', pasteJson: 'Wklej JSON', copyDeck: 'Kopiuj deck.json', saveDeck: 'Zapisz deck.json',
+    pastePh: '{"R":{"0":1,"1":2,...},"Y":{...},"G":{...},"B":{...},"WILD":{"WILD":4,"WILD4":4}}',
+    fileOk: (n, name) => `Wczytano ${name}: ${n} kart.`,
+    fileBad: 'Nie mogę odczytać talii. Potrzebny jest JSON z kluczami R, Y, G, B (typy 0-9, +2, STOP, REV) i WILD (WILD, WILD4), liczby całkowite ≥ 0.',
+    copied: 'Skopiowano do schowka', copyFail: 'Schowek zablokowany: tekst zaznaczony, naciśnij Ctrl+C',
+    saved: 'Zapisano deck.json',
+    emptyDeck: 'Talia jest pusta. Dodaj karty, żeby przejść dalej.',
+    nextShuffle: 'Dalej: tasowanie →', nextLength: 'Dalej: długość →', back: '← Wstecz',
+    s2eyebrow: 'Krok 2 z 6', s2title: 'Potasuj dobrze. Naprawdę dobrze.',
+    s2lead: 'Cała losowość pochodzi z tasowania. Siedem tasowań „riffle” to minimum, żeby talia była porządnie wymieszana.',
+    didShuffle: 'Potasowałem (+1)',
+    sh1: 'Podziel talię na dwie połowy i przekładaj karty na przemian (riffle).',
+    sh2: 'Powtórz co najmniej 7 razy. UNO ma 108 kart, więc tasuj mniejszymi porcjami i łącz je.',
+    sh3: 'Połóż talię koszulkami do góry. Karty będziesz odkrywać po jednej z wierzchu.',
+    offlineTitle: 'Zanim zaczniesz',
+    off1: 'Strona działa w pełni offline. Nie łączy się z siecią, blokuje to wbudowana polityka CSP.',
+    off2: 'Najlepiej wyłącz Wi-Fi / odłącz kabel na czas generowania.',
+    off3: 'Nic nie jest zapisywane: entropia, sól i słowa istnieją tylko w pamięci tej karty.',
+    off4: 'Sprawdź, czy nikt nie patrzy Ci przez ramię i czy ekran nie jest nagrywany.',
+    netNow: on => on ? 'Stan sieci: przeglądarka jest ONLINE. Odłącz sieć.' : 'Stan sieci: offline ✓',
+    saltTitle: 'Dodatkowa sól (opcjonalnie)',
+    saltHint: 'Tak jak w oryginalnym programie: dowolny tekst wpisany przed klikaniem jest doklejany do łańcucha soli. Nie zastępuje kart. Pozostaw puste, jeśli nie wiesz.',
+    saltAscii: '✗ Tylko znaki ASCII (bez polskich liter i emoji). Oryginał koduje sól jako ASCII, więc inne znaki dałyby inny wynik.',
+    s3eyebrow: 'Krok 3 z 6', s3title: 'Ile słów ma mieć fraza?',
+    s3lead: 'Więcej słów to więcej bitów entropii i więcej kart do wyłożenia. 24 słowa wymagają całej talii i drugiej rundy.',
+    lenBits: b => `${b} bitów`, lenCards: n => `${n} kart`, lenTwo: n => `+ runda 2: ${n}`,
+    recommended: 'polecane',
+    begin: 'Zaczynamy wykładać karty →',
+    roundLabel: (r, w) => `Runda ${r} · fraza ${w} słów`,
+    pickColor: 'Wybierz kolor', pileEmpty: 'Tu lądują wyłożone karty',
+    undo: '↶ Cofnij ostatnią kartę',
+    legend: 'Klawisze:',
+    abort: 'Przerwij i wyczyść', noBack: 'W trakcie wykładania nie można wrócić, żeby nie pomieszać kolejności.',
+    round2tag: 'Runda 2', round2title: 'Potasuj całą talię jeszcze raz',
+    round2text: n => `Wyłożyłeś całą talię. Zbierz wszystkie karty, potasuj ponownie co najmniej 7 razy i wyłóż jeszcze ${n} kart.`,
+    round2go: 'Potasowałem, wykładam dalej',
+    s5eyebrow: 'Krok 5 z 6', s5title: 'Twoja fraza odzyskiwania',
+    reveal: 'Pokaż słowa', hide: 'Ukryj słowa', copyWords: 'Kopiuj',
+    paperTitle: 'Zapisz na papierze, w tej kolejności.',
+    paperBody: ' Numery słów mają znaczenie. Nie rób zdjęć i nie trzymaj frazy w chmurze. Schowek też jest ryzykiem: kopiuj tylko jeśli musisz.',
+    details: 'Szczegóły techniczne',
+    kvWords: 'Słowa', kvEnt: 'Bity entropii', kvCs: 'Bity sumy kontrolnej', kvCards: 'Wyłożonych kart',
+    bitsLabel: 'Bity: entropia + suma kontrolna (żółte)', entLabel: 'Ciąg kart (kolejność)', saltLabel: 'Sól (łańcuch SHA-512 czasów kliknięć)',
+    safetyTitle: 'Lista kontrolna',
+    safe1: 'Zapisałem wszystkie słowa z numerami', safe2: 'Sprawdziłem zapis słowo po słowie',
+    safe3: 'Potasowałem talię po zakończeniu', safe4: 'Zamknę tę kartę przeglądarki',
+    newSeed: 'Wyczyść i zacznij od nowa',
+    toVerify: 'Zapisałem, sprawdź mój zapis →',
+    s6eyebrow: 'Krok 6 z 6', s6title: 'Sprawdź, czy zapis jest poprawny',
+    s6lead: 'Słowa są ukryte. Wpisz je z kartki, w kolejności, o którą prosimy. Numery pól są wymieszane, żeby sprawdzić każde słowo osobno, a nie z pamięci po kolei.',
+    vHowTitle: 'Jak to działa',
+    vHow: 'Zacznij pisać, a podpowiemy słowa z listy BIP39. Zwykle wystarczą 3–4 litery. Enter lub Tab wybiera podpowiedź, strzałki zmieniają wybór. Poprawne słowo zaświeci się na zielono i przejdziesz do następnego pola.',
+    vReshuffle: 'Wymieszaj kolejność od nowa',
+    vBack: '← Wróć do wyniku',
+    vField: n => `Słowo numer ${n}`,
+    vNoMatch: 'Brak takiego słowa na liście BIP39',
+    vMistakes: n => n ? `Pomyłki: ${n}. Popraw zapis na kartce, jeśli słowo różni się od tego, co wpisałeś.` : '',
+    vDoneTitle: 'Zapis jest poprawny ✓',
+    vDoneText: (n, m) => m ? ` Wszystkie słowa (${n}) się zgadzają, ale były pomyłki (${m}). Upewnij się, że kartka jest czytelna.` : ` Wszystkie słowa (${n}) się zgadzają. Teraz wyczyść stronę i zamknij kartę.`,
+    gVerifyOk: ['Wszystko się zgadza', 'Zapis jest poprawny. Wyczyść stronę i zamknij kartę.'],
+    footer: 'UNO Seed Studio działa lokalnie. Ten sam algorytm co index.html: SHA-512(karty + sól) → BIP39.',
+    noCrypto: 'Ta przeglądarka nie udostępnia crypto.subtle w tym kontekście. Otwórz plik w aktualnym Chrome/Firefox/Edge.',
+    g: {
+      0: ['Ustaw swoją talię', 'Wpisz liczby kart, wklej zapis INIT.py albo wczytaj deck.json. Po prawej widzisz, ile kart trzeba będzie wyłożyć.'],
+      1: ['Tasuj i odłącz sieć', 'Każde tasowanie odhacz przyciskiem. Siedem to minimum, więcej nie zaszkodzi.'],
+      2: ['Wybierz długość frazy', 'Kliknij kafelek. Pod spodem widać, ile kart musisz odkryć.'],
+      3: ['Odkrywaj karty z wierzchu', 'Wybierz kolor, potem kliknij kartę. Wildy są zawsze pod spodem. Pomyłka? Cofnij.'],
+      4: ['Gotowe', 'Odkryj słowa dopiero, gdy masz kartkę i długopis.'],
+      5: ['Sprawdź zapis', 'Wpisuj słowa z kartki, nie z ekranu. Kolejność pól jest losowa.'],
+    },
+    gColor: c => [`Kolor: ${c}`, 'Teraz kliknij wartość karty, którą widzisz.'],
+    gAdded: (card, left) => [`Dodano ${card}`, left > 0 ? `Zostało ${left}. Odkryj następną kartę.` : 'To była ostatnia karta w tej rundzie.'],
+    gNoColor: ['Najpierw kolor', 'Kliknij kolor karty (albo naciśnij R, Y, G, B), potem jej wartość.'],
+    gUndo: card => ['Cofnięto', `Usunięto ${card}. Wyłóż właściwą kartę.`],
+    gRound2: ['Runda 2', 'Zbierz całą talię i potasuj ją ponownie.'],
+    tour: [
+      ['stepper', 'Pięć kroków', 'Przejdziesz przez nie po kolei. Kolejny krok odblokowuje się po poprzednim.'],
+      ['netPill', 'Bez sieci', 'Plik nie łączy się z internetem. Ten znacznik pokazuje, czy przeglądarka widzi sieć. Najlepiej generuj offline.'],
+      ['guide', 'Przewodnik', 'Tutaj zawsze znajdziesz podpowiedź, co zrobić teraz.'],
+      ['deckCard', 'Twoja talia', 'Każde pole to liczba danej karty w danym kolorze. Wiersz „Wszystkie” działa jak fcc z INIT.py.'],
+      ['specCard', 'Szybki zapis', 'Znasz notację INIT.py? Wpisz jedną linię i kliknij Zastosuj.'],
+      ['fileCard', 'Własny deck.json', 'Przeciągnij plik z INIT.py albo wklej JSON. Możesz też skopiować lub zapisać swoją talię.'],
+      ['totalsCard', 'Ile kart wyłożysz', 'Tabela liczy się na żywo z Twojej talii dla każdej długości frazy.'],
+      ['toStep1', 'Dalej', 'Gdy talia się zgadza, przejdź do tasowania.'],
+    ],
+    tourDraw: [
+      ['colors', 'Najpierw kolor', 'Klikasz kolor odkrytej karty (lub klawisz R/Y/G/B).'],
+      ['hand', 'Potem wartość', 'Liczba w kółku mówi, ile takich kart jeszcze zostało. Wildy nie mają koloru, są zawsze dostępne.'],
+      ['pile', 'Stos', 'Wyłożone karty lądują tutaj, najnowsza na wierzchu.'],
+      ['btnUndo', 'Pomyłka?', 'Cofnij ostatnią kartę (Backspace) i kliknij właściwą.'],
+    ],
+    next: 'Dalej', prev: 'Wstecz', done: 'Koniec',
+    cR: 'Czerwony', cY: 'Żółty', cG: 'Zielony', cB: 'Niebieski',
+    tStop: 'Stop', tRev: 'Zmiana', tWild: 'Wild', tWild4: 'Wild +4',
+  },
+  en: {
+    steps: ['Deck', 'Shuffle', 'Length', 'Cards', 'Result', 'Verify'],
+    netOffline: 'Offline', netOnline: 'Online: disconnect',
+    tourBtn: 'Tutorial',
+    faqAria: 'How does the phrase work? (FAQ)', close: 'Close',
+    welcomeTitle: 'A seed from a real UNO deck',
+    welcomeBody: 'I will walk you through turning a shuffled deck into a BIP39 phrase. First, tell me which cards are in your box.',
+    startTour: 'Show tutorial', skip: 'Skip',
+    s1eyebrow: 'Step 1 of 6', s1title: 'How many cards are in your deck?',
+    s1lead: 'Enter the count of each card in each color. The “All” row sets all four colors at once. A standard UNO deck has 108 cards.',
+    presetStd: 'Standard 108', presetEmpty: 'Clear',
+    colAll: 'All', colSum: 'Total',
+    gridHint: 'Click a field and use ↑/↓ or type a number. Empty means 0.',
+    specTitle: 'Quick notation (as in INIT.py)',
+    specHint: '<code>fcc2</code> every color 2×, <code>R2 Y1 G2 B0</code> per color, <code>x4</code> for wilds, <code>1-9</code> range. Cards without a count take the next count.',
+    apply: 'Apply',
+    specOk: n => `Applied. The deck has ${n} cards.`,
+    deckSummary: 'Your deck', cardsWord: 'cards',
+    reqWords: 'Words', reqCards: 'Cards to draw', reqRounds: 'Rounds',
+    dropTitle: 'Load deck.json', dropHint: 'Drop the file here (e.g. from INIT.py) or pick it from disk.',
+    chooseFile: 'Choose file', pasteJson: 'Paste JSON', copyDeck: 'Copy deck.json', saveDeck: 'Save deck.json',
+    pastePh: '{"R":{"0":1,"1":2,...},"Y":{...},"G":{...},"B":{...},"WILD":{"WILD":4,"WILD4":4}}',
+    fileOk: (n, name) => `Loaded ${name}: ${n} cards.`,
+    fileBad: 'Could not read the deck. Expected JSON with keys R, Y, G, B (types 0-9, +2, STOP, REV) and WILD (WILD, WILD4), whole numbers ≥ 0.',
+    copied: 'Copied to clipboard', copyFail: 'Clipboard blocked: text selected, press Ctrl+C',
+    saved: 'Saved deck.json',
+    emptyDeck: 'The deck is empty. Add cards to continue.',
+    nextShuffle: 'Next: shuffle →', nextLength: 'Next: length →', back: '← Back',
+    s2eyebrow: 'Step 2 of 6', s2title: 'Shuffle well. Really well.',
+    s2lead: 'All randomness comes from the shuffle. Seven riffle shuffles is the minimum for a well-mixed deck.',
+    didShuffle: 'Shuffled (+1)',
+    sh1: 'Split the deck in two halves and interleave them (riffle).',
+    sh2: 'Repeat at least 7 times. UNO has 108 cards, so riffle in smaller packets and combine them.',
+    sh3: 'Place the deck face down. You will flip cards one by one from the top.',
+    offlineTitle: 'Before you start',
+    off1: 'This page works fully offline. It never connects to the network; the built-in CSP blocks it.',
+    off2: 'Best: turn off Wi-Fi / unplug the cable while generating.',
+    off3: 'Nothing is stored: entropy, salt and words live only in this tab’s memory.',
+    off4: 'Make sure nobody watches over your shoulder and the screen is not recorded.',
+    netNow: on => on ? 'Network: the browser is ONLINE. Disconnect it.' : 'Network: offline ✓',
+    saltTitle: 'Extra salt (optional)',
+    saltHint: 'Same as the original program: any text typed before drawing is prepended to the salt chain. It does not replace the cards. Leave empty if unsure.',
+    saltAscii: '✗ ASCII characters only (no accented letters or emoji). The original encodes the salt as ASCII, so other characters would give a different result.',
+    s3eyebrow: 'Step 3 of 6', s3title: 'How many words?',
+    s3lead: 'More words means more entropy bits and more cards to draw. 24 words need the whole deck plus a second round.',
+    lenBits: b => `${b} bits`, lenCards: n => `${n} cards`, lenTwo: n => `+ round 2: ${n}`,
+    recommended: 'recommended',
+    begin: 'Start drawing cards →',
+    roundLabel: (r, w) => `Round ${r} · ${w}-word phrase`,
+    pickColor: 'Pick a color', pileEmpty: 'Drawn cards land here',
+    undo: '↶ Undo last card',
+    legend: 'Keys:',
+    abort: 'Abort and wipe', noBack: 'You cannot go back while drawing, to keep the order intact.',
+    round2tag: 'Round 2', round2title: 'Shuffle the whole deck again',
+    round2text: n => `You drew the whole deck. Gather all cards, shuffle at least 7 more times and draw ${n} more cards.`,
+    round2go: 'Shuffled, keep drawing',
+    s5eyebrow: 'Step 5 of 6', s5title: 'Your recovery phrase',
+    reveal: 'Show words', hide: 'Hide words', copyWords: 'Copy',
+    paperTitle: 'Write it on paper, in this order.',
+    paperBody: ' Word numbers matter. No photos, no cloud. The clipboard is a risk too: copy only if you must.',
+    details: 'Technical details',
+    kvWords: 'Words', kvEnt: 'Entropy bits', kvCs: 'Checksum bits', kvCards: 'Cards drawn',
+    bitsLabel: 'Bits: entropy + checksum (yellow)', entLabel: 'Card sequence (order)', saltLabel: 'Salt (SHA-512 chain of click times)',
+    safetyTitle: 'Checklist',
+    safe1: 'I wrote down every word with its number', safe2: 'I checked it word by word',
+    safe3: 'I shuffled the deck afterwards', safe4: 'I will close this browser tab',
+    newSeed: 'Wipe and start over',
+    toVerify: 'Written down, check my copy →',
+    s6eyebrow: 'Step 6 of 6', s6title: 'Check that your copy is correct',
+    s6lead: 'The words are hidden. Type them from your paper in the order we ask for. The positions are shuffled so each word is checked on its own, not recited from memory in sequence.',
+    vHowTitle: 'How it works',
+    vHow: 'Start typing and we suggest words from the BIP39 list. 3–4 letters are usually enough. Enter or Tab picks the suggestion, arrow keys change it. A correct word turns green and you move to the next field.',
+    vReshuffle: 'Shuffle the order again',
+    vBack: '← Back to the result',
+    vField: n => `Word number ${n}`,
+    vNoMatch: 'No such word in the BIP39 list',
+    vMistakes: n => n ? `Mistakes: ${n}. Fix your paper copy if a word differs from what you typed.` : '',
+    vDoneTitle: 'Your copy is correct ✓',
+    vDoneText: (n, m) => m ? ` All ${n} words match, but there were mistakes (${m}). Make sure your paper is legible.` : ` All ${n} words match. Now wipe the page and close the tab.`,
+    gVerifyOk: ['All correct', 'Your copy is correct. Wipe the page and close the tab.'],
+    footer: 'UNO Seed Studio runs locally. Same algorithm as index.html: SHA-512(cards + salt) → BIP39.',
+    noCrypto: 'This browser does not expose crypto.subtle here. Open the file in a current Chrome/Firefox/Edge.',
+    g: {
+      0: ['Set up your deck', 'Type the counts, paste INIT.py notation or load deck.json. The right side shows how many cards you will draw.'],
+      1: ['Shuffle and go offline', 'Tick each shuffle with the button. Seven is the minimum; more does not hurt.'],
+      2: ['Pick the phrase length', 'Click a tile. It shows how many cards you will flip.'],
+      3: ['Flip cards from the top', 'Pick the color, then click the card. Wilds are always below. Mistake? Undo.'],
+      4: ['Done', 'Reveal the words only when you have paper and pen ready.'],
+      5: ['Check your copy', 'Type the words from your paper, not from the screen. The field order is random.'],
+    },
+    gColor: c => [`Color: ${c}`, 'Now click the value of the card you see.'],
+    gAdded: (card, left) => [`Added ${card}`, left > 0 ? `${left} to go. Flip the next card.` : 'That was the last card of this round.'],
+    gNoColor: ['Color first', 'Click the card’s color (or press R, Y, G, B), then its value.'],
+    gUndo: card => ['Undone', `Removed ${card}. Enter the correct card.`],
+    gRound2: ['Round 2', 'Gather the whole deck and shuffle it again.'],
+    tour: [
+      ['stepper', 'Five steps', 'You go through them in order. Each step unlocks after the previous one.'],
+      ['netPill', 'No network', 'The file never talks to the internet. This badge shows whether the browser sees a network. Generate offline.'],
+      ['guide', 'Guide', 'This bar always tells you what to do next.'],
+      ['deckCard', 'Your deck', 'Each field is how many of that card you have in that color. The “All” row works like fcc in INIT.py.'],
+      ['specCard', 'Quick notation', 'Know the INIT.py notation? Type one line and hit Apply.'],
+      ['fileCard', 'Your deck.json', 'Drop the INIT.py file or paste JSON. You can also copy or save your deck.'],
+      ['totalsCard', 'Cards to draw', 'Live table computed from your deck for every phrase length.'],
+      ['toStep1', 'Next', 'Once the deck is right, move on to shuffling.'],
+    ],
+    tourDraw: [
+      ['colors', 'Color first', 'Click the flipped card’s color (or press R/Y/G/B).'],
+      ['hand', 'Then the value', 'The badge shows how many of that card remain. Wilds have no color and are always available.'],
+      ['pile', 'Pile', 'Drawn cards land here, newest on top.'],
+      ['btnUndo', 'Mistake?', 'Undo the last card (Backspace) and click the right one.'],
+    ],
+    next: 'Next', prev: 'Back', done: 'Done',
+    cR: 'Red', cY: 'Yellow', cG: 'Green', cB: 'Blue',
+    tStop: 'Skip', tRev: 'Reverse', tWild: 'Wild', tWild4: 'Wild +4',
+  },
+};
+
+const store = {
+  get(k) { try { return localStorage.getItem('unoSeedStudio.' + k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem('unoSeedStudio.' + k, v); } catch (e) { /* ignore */ } },
+};
+
+let lang = store.get('lang') || ((navigator.language || 'pl').toLowerCase().startsWith('pl') ? 'pl' : 'en');
+const t = (key, ...a) => { const v = I18N[lang][key]; return typeof v === 'function' ? v(...a) : v; };
+const $ = id => document.getElementById(id);
+
+// ============================================================
+// Deck model (same shape as INIT.py / index.html deck.json)
+// ============================================================
+const COLORS = ['R', 'Y', 'G', 'B'];
+const TYPES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+2', 'STOP', 'REV'];
+const WILDS = ['WILD', 'WILD4'];
+const STANDARD_SPEC = '0 fcc1, 1-9 fcc2, +2,stop,reverse fcc2, wildcolor x4, wild+4 x4';
+
+// Same ratios as index.html
+const WORD_COUNTS = [12, 15, 18, 21, 24];
+const ENTROPY_BITS = [128, 160, 192, 224, 256];
+const CARDS_REQUIRED_RATIO = [35 / 52, 41 / 52, 47 / 52, 1, 1];
+const NEEDS_SECOND_ROUND = [false, false, false, false, true];
+const SECOND_ROUND_RATIO = 6 / 52;
+
+function emptyDeck() {
+  const d = {};
+  COLORS.forEach(c => { d[c] = {}; TYPES.forEach(ty => { d[c][ty] = 0; }); });
+  d.WILD = { WILD: 0, WILD4: 0 };
+  return d;
+}
+const cloneDeck = d => JSON.parse(JSON.stringify(d));
+function deckTotal(d) {
+  let n = 0;
+  COLORS.forEach(c => TYPES.forEach(ty => { n += d[c][ty]; }));
+  return n + d.WILD.WILD + d.WILD.WILD4;
+}
+function parseDeck(obj) {
+  const count = v => { const n = Number(v); if (!Number.isInteger(n) || n < 0 || n > 999) throw new Error('bad count'); return n; };
+  const d = emptyDeck();
+  COLORS.forEach(c => {
+    if (!obj || typeof obj[c] !== 'object') throw new Error('missing ' + c);
+    TYPES.forEach(ty => { d[c][ty] = count(obj[c][ty] ?? 0); });
+  });
+  const w = obj.WILD || {};
+  d.WILD = { WILD: count(w.WILD ?? 0), WILD4: count(w.WILD4 ?? 0) };
+  if (deckTotal(d) === 0) throw new Error('empty');
+  return d;
+}
+
+// Port of INIT.py parse_spec()
+const TYPE_ALIASES = { '+2': '+2', stop: 'STOP', skip: 'STOP', reverse: 'REV', rev: 'REV' };
+const WILD_ALIASES = { wildcolor: 'WILD', wild: 'WILD', 'wild+4': 'WILD4', 'wild+4color': 'WILD4', wild4: 'WILD4' };
+function parseColoredCount(text) {
+  text = text.trim().toLowerCase();
+  let m = /^(?:fcc|fcd)?\s*(\d+)$/.exec(text);
+  if (m) { const o = {}; COLORS.forEach(c => { o[c] = +m[1]; }); return o; }
+  const o = { R: 0, Y: 0, G: 0, B: 0 };
+  const parts = [...text.matchAll(/([rygb])\s*(\d+)/g)];
+  if (!parts.length || text.replace(/[rygb]\s*\d+|\s/g, '')) throw new Error(`'${text}' (fccN / R2 Y1 G2 B0)`);
+  parts.forEach(p => { o[p[1].toUpperCase()] = +p[2]; });
+  return o;
+}
+function parseWildCount(text) {
+  const m = /^x?\s*(\d+)$/.exec(text.trim().toLowerCase());
+  if (!m) throw new Error(`'${text}' (xN)`);
+  return +m[1];
+}
+function expandTypes(tok) {
+  tok = tok.trim().toLowerCase();
+  let m = /^(\d)-(\d)$/.exec(tok);
+  if (m) { const out = []; for (let n = +m[1]; n <= +m[2]; n++) out.push(String(n)); return out; }
+  if (/^\d$/.test(tok)) return [tok];
+  if (TYPE_ALIASES[tok]) return [TYPE_ALIASES[tok]];
+  throw new Error(`'${tok}' ?`);
+}
+function parseSpec(spec) {
+  const d = emptyDeck();
+  let pending = [];
+  for (const raw of spec.split(',')) {
+    const chunk = raw.trim();
+    if (!chunk) continue;
+    const m = /^(\S+)\s+(.+)$/.exec(chunk);
+    const name = (m ? m[1] : chunk).toLowerCase();
+    const count = m ? m[2] : null;
+    if (WILD_ALIASES[name]) {
+      if (count === null) throw new Error(`${name} x?`);
+      d.WILD[WILD_ALIASES[name]] = parseWildCount(count);
+      continue;
+    }
+    pending = pending.concat(expandTypes(name));
+    if (count === null) continue;
+    const counts = parseColoredCount(count);
+    pending.forEach(ty => COLORS.forEach(c => { d[c][ty] = counts[c]; }));
+    pending = [];
+  }
+  if (pending.length) throw new Error(pending.join(', ') + ' ?');
+  return d;
+}
+
+let deck = parseSpec(STANDARD_SPEC);
+try { const saved = store.get('deck'); if (saved) deck = parseDeck(JSON.parse(saved)); } catch (e) { /* keep standard */ }
+
+// ============================================================
+// Generation state. Lives only in memory, never persisted.
+// ============================================================
+const S = {
+  step: 0, maxStep: 0,
+  wordIndex: 4,
+  round: 1,
+  remaining: null,
+  activeColor: null,
+  history: [],          // current round: [{card, kind, color, type, saltBefore}]
+  tbEnt: '',            // committed card codes from finished rounds
+  tbSalt: '',
+  shuffles: 0,
+  busy: false,
+  result: null,
+  revealed: false,
+};
+let chain = Promise.resolve();   // serialises salt updates so fast clicks never race
+let epoch = 0;                   // bumped by wipeSecrets(); stale queued work from an aborted run is dropped
+const enqueue = fn => {
+  const ep = epoch;
+  return (chain = chain.then(() => (ep === epoch ? fn(ep) : undefined)).catch(err => console.error(err)));
+};
+
+const total = () => deckTotal(deck);
+const cardsRequired = (wi = S.wordIndex) => Math.min(total(), Math.ceil(total() * CARDS_REQUIRED_RATIO[wi]));
+const secondRoundCards = () => Math.min(total(), Math.max(1, Math.ceil(total() * SECOND_ROUND_RATIO)));
+const requiredNow = () => S.round === 2 ? secondRoundCards() : cardsRequired();
+
+// ============================================================
+// Crypto (identical to index.html)
+// ============================================================
+async function sha512b64(str) {
+  const buf = await crypto.subtle.digest('SHA-512', new TextEncoder().encode(str));
+  const arr = new Uint8Array(buf);
+  return btoa(String.fromCharCode(...arr));
+}
+async function deriveMnemonic(entText, salt, wordIndex) {
+  const entLen = ENTROPY_BITS[wordIndex];
+  const hash = new Uint8Array(await crypto.subtle.digest('SHA-512', new TextEncoder().encode(entText + salt)));
+  const truncated = hash.slice(0, entLen / 8);
+  let seed = '';
+  for (let i = 0; i < truncated.length; i++) seed += truncated[i].toString(2).padStart(8, '0');
+  const cs = new Uint8Array(await crypto.subtle.digest('SHA-256', truncated));
+  const csLen = entLen / 32;
+  const csBits = cs[0].toString(2).padStart(8, '0').substring(0, csLen);
+  const bits = seed + csBits;
+  const words = [];
+  for (let i = 0; i < bits.length; i += 11) words.push(BIP39_WORDS[parseInt(bits.substring(i, i + 11), 2)]);
+  return { words, seedBits: seed, csBits, entLen, csLen };
+}
+
+// ============================================================
+// Rendering helpers
+// ============================================================
+function typeGlyph(ty) {
+  if (ty === 'STOP') return { txt: '⊘', cls: 'sym', corner: '⊘' };
+  if (ty === 'REV') return { txt: '⇄', cls: 'sym', corner: '⇄' };
+  if (ty === '+2') return { txt: '+2', cls: '', corner: '+2' };
+  if (ty === 'WILD') return { txt: 'WILD', cls: 'word', corner: 'W' };
+  if (ty === 'WILD4') return { txt: '+4', cls: '', corner: '+4' };
+  return { txt: ty, cls: '', corner: ty };
+}
+function cardEl(color, type, w) {
+  const el = document.createElement('div');
+  el.className = 'ucard';
+  el.dataset.c = color;
+  if (w) el.style.setProperty('--w', w + 'px');
+  const g = typeGlyph(type);
+  if (w && w < 50 && type === 'WILD') { g.txt = 'W'; g.cls = ''; }
+  el.innerHTML = `<span class="corner tl"></span><span class="face ${g.cls}"></span><span class="corner br"></span>`;
+  el.children[0].textContent = g.corner;
+  el.children[1].textContent = g.txt;
+  el.children[2].textContent = g.corner;
+  return el;
+}
+const colorName = c => t('c' + c);
+function typeName(ty) {
+  return ({ STOP: t('tStop'), REV: t('tRev'), WILD: t('tWild'), WILD4: t('tWild4') })[ty] || ty;
+}
+function cardLabel(entry) {
+  return entry.kind === 'wild' ? typeName(entry.type) : `${typeName(entry.type)} ${colorName(entry.color).toLowerCase()}`;
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('on'), 2200);
+}
+async function copyText(text, btn, selectEl) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(t('copied'));
+    if (btn) { btn.classList.add('copied'); setTimeout(() => btn.classList.remove('copied'), 1600); }
+  } catch (e) {
+    if (selectEl) {
+      const r = document.createRange(); r.selectNodeContents(selectEl);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+    toast(t('copyFail'));
+  }
+}
+function guide(title, body) {
+  $('gTitle').textContent = title;
+  $('gBody').textContent = body;
+  const g = $('guide');
+  g.classList.remove('flash'); void g.offsetWidth; g.classList.add('flash');
+}
+const guideStep = () => (S.step === 5 && verifyDone() ? guide(...t('gVerifyOk')) : guide(...t('g')[S.step]));
+
+// ============================================================
+// Static text
+// ============================================================
+function applyI18n() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); el.title = t(el.dataset.i18nAria); });
+  $('btnLang').textContent = lang === 'pl' ? 'EN' : 'PL';
+  renderStepper(); renderDeckTable(); renderTotals(); renderOffline(); renderLengths(); renderNet();
+  renderSafety(); renderLegend(); renderFaq();
+  if (S.step === 3) renderDraw();
+  if (S.step === 4) renderResult();
+  if (S.step === 5) { renderVerifyStatus(); acHide(null); }
+  if (!$('round2').hidden) $('round2text').textContent = t('round2text', secondRoundCards());
+  $('btnReveal').textContent = S.revealed ? t('hide') : t('reveal');
+  if (S.step === 3 && !$('round2').hidden) guide(...t('gRound2')); else guideStep();
+}
+
+// ============================================================
+// Stepper / navigation
+// ============================================================
+function renderStepper() {
+  const ol = $('stepper');
+  ol.innerHTML = '';
+  t('steps').forEach((name, i) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = `<span class="num"><span>${i + 1}</span></span><span class="lbl"></span>`;
+    b.querySelector('.lbl').textContent = name;
+    b.title = name;
+    const locked = i > S.maxStep || (S.step === 3 && i !== 3) || (S.step >= 4 && i < 4) || (S.step < 3 && i >= 3);
+    b.disabled = locked;
+    if (i < S.step || (i === 5 && verifyDone())) b.classList.add('done');
+    if (i === S.step) b.setAttribute('aria-current', 'step');
+    b.addEventListener('click', () => goto(i));
+    li.appendChild(b);
+    ol.appendChild(li);
+  });
+}
+function goto(i) {
+  S.step = i;
+  S.maxStep = Math.max(S.maxStep, i);
+  document.querySelectorAll('section.panel').forEach(p => { p.hidden = +p.dataset.step !== i; });
+  const p = $('step' + i);
+  p.style.animation = 'none'; void p.offsetWidth; p.style.animation = '';
+  renderStepper();
+  guideStep();
+  if (i === 3) renderDraw();
+  if (i === 5) startVerify(); else acHide(null);
+  window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
+document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => goto(+b.dataset.goto)));
+
+// ============================================================
+// Step 1: deck editor
+// ============================================================
+function renderDeckTable() {
+  const tb = $('deckTable');
+  let h = '<thead><tr><th></th>';
+  TYPES.forEach(ty => { h += `<th>${ty === 'STOP' ? '⊘' : ty === 'REV' ? '⇄' : ty}</th>`; });
+  h += `<th>${t('colSum')}</th></tr></thead><tbody>`;
+  h += `<tr class="all"><th>${t('colAll')}</th>`;
+  TYPES.forEach(ty => { h += `<td><input class="num-in" type="number" min="0" max="99" inputmode="numeric" id="d-ALL-${ty}" data-all="${ty}" aria-label="${t('colAll')} ${typeName(ty)}"></td>`; });
+  h += '<td></td></tr>';
+  const colorVar = { R: '--uno-r', Y: '--uno-y', G: '--uno-g', B: '--uno-b' };
+  COLORS.forEach(c => {
+    h += `<tr data-row="${c}"><th><span class="sw" style="background:var(${colorVar[c]})"></span>${colorName(c)}</th>`;
+    TYPES.forEach(ty => { h += `<td><input class="num-in" type="number" min="0" max="99" inputmode="numeric" id="d-${c}-${ty}" data-c="${c}" data-t="${ty}" aria-label="${colorName(c)} ${typeName(ty)}"></td>`; });
+    h += `<td class="sum" id="sum-${c}"></td></tr>`;
+  });
+  tb.innerHTML = h + '</tbody>';
+
+  const wr = $('wildRow');
+  wr.innerHTML = '';
+  WILDS.forEach(w => {
+    const lab = document.createElement('label');
+    lab.appendChild(cardEl('K', w, 34));
+    const span = document.createElement('span'); span.textContent = typeName(w);
+    lab.appendChild(span);
+    const inp = document.createElement('input');
+    Object.assign(inp, { className: 'num-in', type: 'number', min: 0, max: 99, id: 'd-' + w });
+    inp.dataset.w = w;
+    inp.inputMode = 'numeric';
+    lab.appendChild(inp);
+    wr.appendChild(lab);
+  });
+  syncDeckInputs();
+}
+function syncDeckInputs(changed) {
+  COLORS.forEach(c => {
+    TYPES.forEach(ty => setNum($(`d-${c}-${ty}`), deck[c][ty], changed));
+    $('sum-' + c).textContent = TYPES.reduce((s, ty) => s + deck[c][ty], 0);
+  });
+  TYPES.forEach(ty => {
+    const vals = COLORS.map(c => deck[c][ty]);
+    const inp = $('d-ALL-' + ty);
+    const same = vals.every(v => v === vals[0]);
+    if (document.activeElement !== inp) inp.value = same ? vals[0] : '';
+    inp.placeholder = same ? '' : '–';
+  });
+  WILDS.forEach(w => setNum($('d-' + w), deck.WILD[w], changed));
+}
+function setNum(inp, v, changed) {
+  if (!inp) return;
+  if (document.activeElement !== inp) inp.value = v;
+  inp.classList.toggle('zero', v === 0);
+  if (changed && changed.has(inp.id)) { inp.classList.remove('bump'); void inp.offsetWidth; inp.classList.add('bump'); }
+}
+function readNum(inp) {
+  const n = parseInt(inp.value, 10);
+  return Number.isFinite(n) && n >= 0 ? Math.min(n, 99) : 0;
+}
+function deckChanged(changed) {
+  syncDeckInputs(changed);
+  renderTotals();
+  store.set('deck', JSON.stringify(deck));
+}
+$('deckCard').addEventListener('input', e => {
+  const inp = e.target;
+  if (!inp.classList.contains('num-in')) return;
+  const n = readNum(inp);
+  const changed = new Set();
+  if (inp.dataset.all) {
+    if (inp.value === '') return;
+    COLORS.forEach(c => { deck[c][inp.dataset.all] = n; changed.add(`d-${c}-${inp.dataset.all}`); });
+  } else if (inp.dataset.w) {
+    deck.WILD[inp.dataset.w] = n;
+  } else {
+    deck[inp.dataset.c][inp.dataset.t] = n;
+  }
+  deckChanged(changed);
+});
+$('deckCard').addEventListener('focusout', () => setTimeout(() => syncDeckInputs(), 0));
+
+$('presets').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  deck = b.dataset.preset === 'std' ? parseSpec(STANDARD_SPEC) : emptyDeck();
+  if (b.dataset.preset === 'std') $('specInput').value = STANDARD_SPEC;
+  const all = new Set(); COLORS.forEach(c => TYPES.forEach(ty => all.add(`d-${c}-${ty}`)));
+  deckChanged(all);
+});
+
+function applySpec() {
+  const msg = $('specMsg');
+  try {
+    deck = parseSpec($('specInput').value);
+    const all = new Set(); COLORS.forEach(c => TYPES.forEach(ty => all.add(`d-${c}-${ty}`)));
+    deckChanged(all);
+    msg.className = 'msg ok'; msg.textContent = t('specOk', total());
+  } catch (err) {
+    msg.className = 'msg bad'; msg.textContent = '✗ ' + err.message;
+  }
+}
+$('btnSpec').addEventListener('click', applySpec);
+$('specInput').addEventListener('keydown', e => { if (e.key === 'Enter') applySpec(); });
+
+function renderTotals() {
+  const n = total();
+  $('deckTotal').textContent = n;
+  const bars = $('deckBars');
+  const sums = COLORS.map(c => TYPES.reduce((s, ty) => s + deck[c][ty], 0)).concat([deck.WILD.WILD + deck.WILD.WILD4]);
+  const cols = ['var(--uno-r)', 'var(--uno-y)', 'var(--uno-g)', 'var(--uno-b)', 'var(--uno-k)'];
+  bars.innerHTML = sums.map((s, i) => `<span style="flex-grow:${s};background:${cols[i]}"></span>`).join('');
+  let h = `<thead><tr><th>${t('reqWords')}</th><th>${t('reqCards')}</th><th>${t('reqRounds')}</th></tr></thead><tbody>`;
+  WORD_COUNTS.forEach((w, i) => {
+    const c = n ? cardsRequired(i) : 0;
+    const two = NEEDS_SECOND_ROUND[i];
+    h += `<tr><td><b>${w}</b></td><td>${two ? `${c} + ${n ? secondRoundCards() : 0}` : c}</td><td>${two ? 2 : 1}</td></tr>`;
+  });
+  $('reqTable').innerHTML = h + '</tbody>';
+  $('toStep1').disabled = n === 0;
+  if (n === 0 && S.step === 0) guide(t('g')[0][0], t('emptyDeck'));
+  renderLengths();
+}
+
+// File / paste / export
+async function loadDeckText(text, name) {
+  const msg = $('fileMsg');
+  try {
+    deck = parseDeck(JSON.parse(text.replace(/^﻿/, '')));   // Windows editors may add a BOM
+    const all = new Set(); COLORS.forEach(c => TYPES.forEach(ty => all.add(`d-${c}-${ty}`)));
+    deckChanged(all);
+    msg.className = 'msg ok'; msg.textContent = '✓ ' + t('fileOk', total(), name);
+    toast(t('fileOk', total(), name));
+  } catch (e) {
+    msg.className = 'msg bad'; msg.textContent = '✗ ' + t('fileBad');
+  }
+}
+$('deckFile').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (f) await loadDeckText(await f.text(), f.name);
+  e.target.value = '';
+});
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', async e => {
+  const f = e.dataTransfer.files[0];
+  if (f) await loadDeckText(await f.text(), f.name);
+});
+// Stop files dropped elsewhere from navigating away from the page
+['dragover', 'drop'].forEach(ev => window.addEventListener(ev, e => e.preventDefault()));
+$('btnPaste').addEventListener('click', () => { const b = $('pasteBox'); b.hidden = !b.hidden; if (!b.hidden) $('pasteArea').focus(); });
+$('btnPasteApply').addEventListener('click', () => loadDeckText($('pasteArea').value, 'JSON'));
+const deckJson = () => JSON.stringify(deck, null, 2);
+$('btnCopyDeck').addEventListener('click', e => {
+  $('pasteArea').value = deckJson();
+  copyText(deckJson(), e.currentTarget, null);
+});
+$('btnSaveDeck').addEventListener('click', () => {
+  const url = URL.createObjectURL(new Blob([deckJson()], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'deck.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(t('saved'));
+});
+$('toStep1').addEventListener('click', () => { if (total() > 0) goto(1); });
+
+$('btnHideWelcome').addEventListener('click', () => { $('welcome').hidden = true; store.set('welcome', '0'); });
+if (store.get('welcome') === '0') $('welcome').hidden = true;
+
+// ============================================================
+// Step 2: shuffle
+// ============================================================
+function buildShuffle(stage) {
+  stage.innerHTML = '';
+  const cs = ['R', 'Y', 'G', 'B'];
+  for (let i = 0; i < 5; i++) {
+    const l = cardEl('K', 'WILD'); l.className = 'ucard back l'; l.style.setProperty('--i', i);
+    l.innerHTML = '<span class="face">UNO</span>';
+    const r = cardEl(cs[i % 4], String(i + 3)); r.className = 'ucard back r'; r.style.setProperty('--i', i);
+    r.innerHTML = '<span class="face">UNO</span>';
+    stage.appendChild(l); stage.appendChild(r);
+  }
+  stage.parentElement.classList.add('anim');
+}
+function renderPips() {
+  const p = $('pips');
+  const n = Math.max(7, S.shuffles);
+  p.innerHTML = '';
+  for (let i = 0; i < n; i++) { const el = document.createElement('i'); if (i < S.shuffles) el.className = 'on'; p.appendChild(el); }
+}
+$('btnShuffled').addEventListener('click', () => {
+  S.shuffles++;
+  renderPips();
+  if (S.shuffles >= 7) guide(t('g')[1][0] + ' ✓', t('g')[1][1]);
+});
+function renderOffline() {
+  const ul = $('offlineList');
+  ul.innerHTML = '';
+  ['off1', 'off2', 'off3', 'off4'].forEach(k => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span aria-hidden="true">•</span><span></span>';
+    li.style.display = 'flex'; li.style.gap = '8px';
+    li.lastChild.textContent = t(k);
+    ul.appendChild(li);
+  });
+  const li = document.createElement('li');
+  li.id = 'netLine'; li.style.fontWeight = '650';
+  ul.appendChild(li);
+  renderNet();
+}
+function renderNet() {
+  const on = navigator.onLine;
+  const pill = $('netPill');
+  pill.className = 'pill ' + (on ? 'warn' : 'ok');
+  $('netText').textContent = on ? t('netOnline') : t('netOffline');
+  const l = $('netLine');
+  if (l) { l.textContent = t('netNow', on); l.style.color = on ? 'var(--warn)' : 'var(--ok)'; }
+}
+window.addEventListener('online', renderNet);
+window.addEventListener('offline', renderNet);
+// The original hashes the salt with Encoding.ASCII; only printable ASCII keeps both programs byte-identical.
+const saltOk = () => /^[\x20-\x7E]*$/.test($('saltInput').value);
+function checkSalt() {
+  const ok = saltOk();
+  $('saltMsg').hidden = ok;
+  $('toStep2').disabled = !ok;
+  return ok;
+}
+$('saltInput').addEventListener('input', checkSalt);
+$('toStep2').addEventListener('click', () => { if (checkSalt()) goto(2); });
+
+// ============================================================
+// Step 3: length
+// ============================================================
+function renderLengths() {
+  const box = $('lengths');
+  box.innerHTML = '';
+  WORD_COUNTS.forEach((w, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'len';
+    b.setAttribute('aria-pressed', String(i === S.wordIndex));
+    const n = total() ? cardsRequired(i) : 0;
+    b.innerHTML = `<b>${w}</b><span class="k"></span><span class="n"></span><span class="n muted"></span>`;
+    b.children[1].textContent = t('lenBits', ENTROPY_BITS[i]);
+    b.children[2].textContent = t('lenCards', n);
+    b.children[3].textContent = NEEDS_SECOND_ROUND[i] ? t('lenTwo', total() ? secondRoundCards() : 0) : ' ';
+    if (i === 4) { const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = t('recommended'); b.appendChild(tag); }
+    b.addEventListener('click', () => { S.wordIndex = i; renderLengths(); });
+    box.appendChild(b);
+  });
+}
+$('btnBegin').addEventListener('click', startGeneration);
+
+// ============================================================
+// Step 4: drawing cards
+// ============================================================
+function startGeneration() {
+  if (!crypto || !crypto.subtle) { guide('✗', t('noCrypto')); return; }
+  if (!checkSalt()) { goto(1); return; }
+  wipeSecrets();
+  S.tbSalt = $('saltInput').value;   // optional user salt, as in the original program (default '')
+  S.round = 1;
+  S.remaining = cloneDeck(deck);
+  S.maxStep = 3;
+  $('round2').hidden = true; $('drawArea').hidden = false;
+  $('pile').innerHTML = `<div class="empty">${t('pileEmpty')}</div>`;
+  goto(3);
+  if (store.get('tourDraw') !== '1') setTimeout(() => runTour(t('tourDraw'), () => store.set('tourDraw', '1')), 350);
+}
+
+const KEYMAP = { '0': '0', '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '+': '+2', p: '+2', s: 'STOP', v: 'REV', w: 'WILD', f: 'WILD4' };
+const KEYOF = { '+2': '+', STOP: 'S', REV: 'V', WILD: 'W', WILD4: 'F' };
+
+function renderLegend() {
+  $('legend').innerHTML = `<span>${t('legend')}</span><span><code>R</code><code>Y</code><code>G</code><code>B</code></span><span><code>0-9</code> <code>+</code> <code>S</code> <code>V</code> <code>W</code> <code>F</code></span><span><code>⌫</code> ${t('undo').replace('↶ ', '')}</span>`;
+}
+
+function renderDraw() {
+  if (!S.remaining) return;
+  const req = requiredNow();
+  const got = S.history.length;
+  $('roundLabel').textContent = t('roundLabel', S.round, WORD_COUNTS[S.wordIndex]);
+  $('count').innerHTML = `${got}<small> / ${req}</small>`;
+  $('meterFill').style.width = (req ? got / req * 100 : 0) + '%';
+  $('btnUndo').disabled = got === 0 || S.busy;
+
+  const colors = $('colors');
+  colors.innerHTML = '';
+  COLORS.forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.dataset.c = c;
+    b.setAttribute('aria-pressed', String(S.activeColor === c));
+    const left = TYPES.reduce((s, ty) => s + S.remaining[c][ty], 0);
+    b.innerHTML = `<span></span><kbd>${c}</kbd>`;
+    b.firstChild.textContent = colorName(c);
+    b.title = `${colorName(c)} · ${left}`;
+    b.disabled = left === 0 || S.busy;
+    if (left === 0) b.style.opacity = '.35';
+    b.addEventListener('click', () => selectColor(c));
+    colors.appendChild(b);
+  });
+
+  const hand = $('hand');
+  hand.innerHTML = '';
+  hand.classList.toggle('idle', !S.activeColor);
+  TYPES.forEach(ty => {
+    const left = S.activeColor ? S.remaining[S.activeColor][ty] : 0;
+    hand.appendChild(cardButton(S.activeColor || 'K', ty, left, !S.activeColor, false));
+  });
+  const div = document.createElement('div'); div.className = 'divider'; div.textContent = 'Wild';
+  hand.appendChild(div);
+  WILDS.forEach(w => hand.appendChild(cardButton('K', w, S.remaining.WILD[w], false, true)));
+}
+function cardButton(color, type, left, idle, wild) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'cbtn' + (wild ? ' wildbtn' : '');
+  b.dataset.type = type;
+  b.disabled = S.busy || (!idle && left <= 0);
+  b.setAttribute('aria-label', wild ? typeName(type) : `${typeName(type)}${S.activeColor ? ' ' + colorName(S.activeColor) : ''}`);
+  b.appendChild(cardEl(idle ? 'K' : color, type));
+  if (!idle) { const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = left; b.appendChild(bd); }
+  const k = document.createElement('span'); k.className = 'key'; k.textContent = KEYOF[type] || type; b.appendChild(k);
+  b.addEventListener('click', () => {
+    if (wild) pickCard('WILD', type, b); else pickCard(S.activeColor, type, b);
+  });
+  return b;
+}
+function selectColor(c) {
+  if (S.busy || S.step !== 3 || !$('round2').hidden) return;
+  if (TYPES.reduce((s, ty) => s + S.remaining[c][ty], 0) === 0) return;
+  S.activeColor = c;
+  renderDraw();
+  guide(...t('gColor', colorName(c)));
+}
+
+function pickCard(color, type, fromBtn) {
+  // Timestamp is captured at the moment of the click, exactly like index.html's updateSalt().
+  const ts = Date.now().toString();
+  if (S.busy || S.step !== 3 || !$('round2').hidden) return;
+  if (color !== 'WILD' && !color) { guide(...t('gNoColor')); return; }
+  const req = requiredNow();
+  if (S.history.length >= req) return;
+  const bucket = color === 'WILD' ? S.remaining.WILD : S.remaining[color];
+  if (bucket[type] <= 0) return;
+  bucket[type]--;
+  const kind = color === 'WILD' ? 'wild' : 'color';
+  // Card code format identical to index.html: type + color, or WILD / WILD4
+  const entry = { card: kind === 'wild' ? type : type + color, kind, color, type, saltBefore: null };
+  S.history.push(entry);
+  enqueue(async ep => {
+    const before = S.tbSalt;
+    const next = await sha512b64(before + ts);
+    if (ep !== epoch) return;       // run was aborted while hashing
+    entry.saltBefore = before;
+    S.tbSalt = next;
+  });
+  flyToPile(fromBtn, kind === 'wild' ? 'K' : color, type);
+  const left = req - S.history.length;
+  guide(...t('gAdded', cardLabel(entry), left));
+  if (left === 0) {
+    S.busy = true;
+    enqueue(roundComplete);
+  }
+  renderDraw();
+}
+
+function undo() {
+  if (S.busy || !S.history.length || S.step !== 3 || !$('round2').hidden) return;
+  const entry = S.history.pop();
+  (entry.kind === 'wild' ? S.remaining.WILD : S.remaining[entry.color])[entry.type]++;
+  enqueue(() => { S.tbSalt = entry.saltBefore; });   // restore the salt chain to before that click
+  const pile = $('pile');
+  const top = pile.querySelector('.ucard:last-of-type');
+  if (top) top.remove();
+  if (!pile.querySelector('.ucard')) pile.innerHTML = `<div class="empty">${t('pileEmpty')}</div>`;
+  guide(...t('gUndo', cardLabel(entry)));
+  renderDraw();
+}
+$('btnUndo').addEventListener('click', undo);
+
+function flyToPile(fromBtn, color, type) {
+  const pile = $('pile');
+  const empty = pile.querySelector('.empty'); if (empty) empty.remove();
+  const final = cardEl(color, type, 84);
+  const rot = (Math.random() * 24 - 12).toFixed(1);   // cosmetic only, never touches entropy
+  const n = pile.querySelectorAll('.ucard').length;
+  final.style.transform = `rotate(${rot}deg) translate(${(n % 5) * 2 - 4}px, ${(n % 3) * 2 - 2}px)`;
+  [...pile.querySelectorAll('.ucard')].slice(0, -6).forEach(x => x.remove());
+  pile.appendChild(final);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const src = fromBtn && fromBtn.querySelector('.ucard');
+  if (reduce || !src) return;
+  const a = src.getBoundingClientRect();
+  const b = final.getBoundingClientRect();
+  const fly = cardEl(color, type, a.width);
+  fly.classList.add('flyer');
+  Object.assign(fly.style, { left: a.left + 'px', top: a.top + 'px', margin: 0 });
+  document.body.appendChild(fly);
+  final.style.visibility = 'hidden';
+  const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+  const dy = b.top + b.height / 2 - (a.top + a.height / 2);
+  const sc = b.width / a.width;
+  fly.animate([
+    { transform: 'translate(0,0) rotate(0) scale(1)' },
+    { transform: `translate(${dx * .5}px, ${dy * .5 - 60}px) rotate(${rot * 2}deg) scale(${(1 + sc) / 2})`, offset: .5 },
+    { transform: `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${sc})` },
+  ], { duration: 360, easing: 'cubic-bezier(.3,.7,.3,1)' }).onfinish = () => { fly.remove(); final.style.visibility = ''; };
+}
+
+async function roundComplete(ep) {
+  S.tbEnt += S.history.map(h => h.card).join('');
+  S.history = [];
+  S.activeColor = null;
+  if (S.round === 1 && NEEDS_SECOND_ROUND[S.wordIndex]) {
+    S.busy = false;
+    $('drawArea').hidden = true;
+    $('round2').hidden = false;
+    $('round2text').textContent = t('round2text', secondRoundCards());
+    buildShuffle($('shuffleStage2'));
+    guide(...t('gRound2'));
+    renderDraw();
+    return;
+  }
+  const r = await deriveMnemonic(S.tbEnt, S.tbSalt, S.wordIndex);
+  if (ep !== epoch) return;
+  S.result = r;
+  S.busy = false;
+  burst();
+  S.maxStep = 4;
+  S.revealed = false;
+  goto(4);
+  renderResult();
+}
+$('btnRound2').addEventListener('click', () => {
+  S.round = 2;
+  S.remaining = cloneDeck(deck);
+  S.activeColor = null;
+  $('round2').hidden = true; $('drawArea').hidden = false;
+  $('pile').innerHTML = `<div class="empty">${t('pileEmpty')}</div>`;
+  guide(...t('g')[3]);
+  renderDraw();
+});
+
+function burst() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cols = ['var(--uno-r)', 'var(--uno-y)', 'var(--uno-g)', 'var(--uno-b)'];
+  const cx = innerWidth / 2, cy = innerHeight / 3;
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('i');
+    p.className = 'burst';
+    p.style.background = cols[i % 4];
+    p.style.left = cx + 'px'; p.style.top = cy + 'px';
+    document.body.appendChild(p);
+    const ang = (i / 28) * Math.PI * 2, dist = 120 + (i % 5) * 30;
+    p.animate([
+      { transform: 'translate(0,0) rotate(0)', opacity: 1 },
+      { transform: `translate(${Math.cos(ang) * dist}px, ${Math.sin(ang) * dist + 80}px) rotate(${i * 40}deg)`, opacity: 0 },
+    ], { duration: 900, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => p.remove();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (S.step !== 3 || !$('round2').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.repeat) { e.preventDefault(); return; }   // a held key must never add extra cards
+  if (document.querySelector('.tour-shade') || $('faq').open) return;   // no card picks behind an overlay
+  const k = e.key.toLowerCase();
+  if (e.key === 'Backspace') { e.preventDefault(); undo(); return; }
+  if (['r', 'y', 'g', 'b'].includes(k)) { selectColor(k.toUpperCase()); return; }
+  const ty = KEYMAP[k] || (e.key === '=' ? '+2' : null);
+  if (!ty) return;
+  const btn = [...$('hand').querySelectorAll('.cbtn')].find(b => b.dataset.type === ty);
+  if (ty === 'WILD' || ty === 'WILD4') pickCard('WILD', ty, btn);
+  else pickCard(S.activeColor, ty, btn);
+});
+
+$('btnAbort').addEventListener('click', () => { wipeSecrets(); S.maxStep = 2; goto(2); });
+
+// ============================================================
+// Step 5: result
+// ============================================================
+function renderResult() {
+  const r = S.result;
+  if (!r) return;
+  const box = $('words');
+  box.classList.toggle('shown', S.revealed);
+  box.innerHTML = '';
+  r.words.forEach((w, i) => {
+    const d = document.createElement('div');
+    d.className = 'word'; d.style.setProperty('--i', i);
+    d.innerHTML = `<div class="in"><div class="f">UNO</div><div class="b"><em>${String(i + 1).padStart(2, '0')}</em><span></span></div></div>`;
+    d.querySelector('.b span').textContent = S.revealed ? w : '';
+    box.appendChild(d);
+  });
+  $('btnCopyWords').disabled = !S.revealed;
+  $('btnReveal').textContent = S.revealed ? t('hide') : t('reveal');
+  $('kv').innerHTML = '';
+  [[t('kvWords'), r.words.length], [t('kvEnt'), r.entLen], [t('kvCs'), r.csLen], [t('kvCards'), (S.tbEnt.match(/WILD4|WILD|\+2[RYGB]|STOP[RYGB]|REV[RYGB]|\d[RYGB]/g) || []).length]].forEach(([k, v]) => {
+    $('kv').insertAdjacentHTML('beforeend', `<dt>${k}</dt><dd>${v}</dd>`);
+  });
+  const bits = $('bits');
+  bits.innerHTML = '';
+  if (S.revealed) {
+    const all = r.seedBits + r.csBits;
+    for (let i = 0; i < all.length; i += 11) {
+      const chunk = all.substring(i, i + 11);
+      const csStart = r.seedBits.length - i;
+      const span = document.createElement('span');
+      if (csStart < 11) {
+        span.append(chunk.substring(0, csStart));
+        const cs = document.createElement('span'); cs.className = 'cs'; cs.textContent = chunk.substring(csStart); span.append(cs);
+      } else span.textContent = chunk;
+      bits.append(span, Object.assign(document.createElement('span'), { className: 'sep', textContent: ' · ' }));
+    }
+    $('entOut').textContent = S.tbEnt;
+    $('saltOut').textContent = S.tbSalt;
+  } else {
+    bits.textContent = '•••'; $('entOut').textContent = '•••'; $('saltOut').textContent = '•••';
+  }
+}
+$('btnReveal').addEventListener('click', () => {
+  S.revealed = !S.revealed;
+  if (S.revealed) {
+    // fill words first so the flip reveals them
+    renderResult();
+    const box = $('words'); box.classList.remove('shown'); void box.offsetWidth; box.classList.add('shown');
+  } else renderResult();
+});
+$('btnCopyWords').addEventListener('click', e => { if (S.result && S.revealed) copyText(S.result.words.join(' '), e.currentTarget, $('words')); });
+function renderSafety() {
+  const box = $('safety');
+  const prev = [...box.querySelectorAll('input')].map(i => i.checked);
+  box.innerHTML = '';
+  ['safe1', 'safe2', 'safe3', 'safe4'].forEach((k, i) => {
+    const l = document.createElement('label');
+    l.innerHTML = `<input type="checkbox" id="safe-${i}"><span></span>`;
+    l.querySelector('input').checked = !!prev[i];
+    l.querySelector('span').textContent = t(k);
+    box.appendChild(l);
+  });
+}
+$('btnNew').addEventListener('click', () => {
+  wipeSecrets();
+  S.maxStep = 2; S.shuffles = 0; renderPips();
+  $('saltInput').value = '';
+  checkSalt();
+  goto(1);
+});
+
+function wipeSecrets() {
+  S.tbEnt = ''; S.tbSalt = ''; S.history = []; S.result = null; S.revealed = false;
+  S.round = 1; S.activeColor = null; S.remaining = cloneDeck(deck); S.busy = false;
+  epoch++;
+  chain = Promise.resolve();
+  $('words').innerHTML = ''; $('bits').textContent = ''; $('entOut').textContent = ''; $('saltOut').textContent = '';
+  $('safety').querySelectorAll('input').forEach(i => { i.checked = false; });
+  V.order = []; V.ok = []; V.mistakes = 0;
+  $('vgrid').innerHTML = ''; $('vDone').hidden = true; $('vMistakes').textContent = '';
+}
+
+// ============================================================
+// Step 6: verify the paper copy (words asked in random order, BIP39 autocomplete)
+// ============================================================
+const V = { order: [], ok: [], mistakes: 0 };
+const verifyDone = () => V.ok.length > 0 && V.ok.every(Boolean);
+// Unbiased index from crypto.getRandomValues. Only shuffles the order of the check fields; never touches the seed.
+function randInt(n) {
+  const lim = Math.floor(0x100000000 / n) * n, a = new Uint32Array(1);
+  do crypto.getRandomValues(a); while (a[0] >= lim);
+  return a[0] % n;
+}
+function startVerify() {
+  if (!S.result) return;
+  const n = S.result.words.length;
+  V.order = [...Array(n).keys()];
+  for (let i = n - 1; i > 0; i--) { const j = randInt(i + 1); [V.order[i], V.order[j]] = [V.order[j], V.order[i]]; }
+  V.ok = Array(n).fill(false); V.mistakes = 0;
+  S.revealed = false; renderResult();   // hide the words: the copy must come from paper
+  const grid = $('vgrid');
+  grid.innerHTML = '';
+  V.order.forEach(pos => {
+    const f = document.createElement('div');
+    f.className = 'vfield'; f.dataset.pos = pos;
+    f.innerHTML = '<em></em><input type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="vAc">';
+    f.querySelector('em').textContent = String(pos + 1).padStart(2, '0');
+    const inp = f.querySelector('input');
+    inp.addEventListener('input', () => { f.classList.remove('bad'); acShow(inp); });
+    inp.addEventListener('focus', () => acShow(inp));
+    inp.addEventListener('blur', () => acHide(inp));
+    inp.addEventListener('keydown', e => acKey(e, inp));
+    f.addEventListener('mousedown', e => { if (e.target === f) { e.preventDefault(); inp.focus(); } });
+    grid.appendChild(f);
+  });
+  renderVerifyStatus();
+  focusNextField(null);
+}
+function renderVerifyStatus() {
+  const n = V.ok.length, c = V.ok.filter(Boolean).length;
+  $('vCount').innerHTML = `${c}<small> / ${n}</small>`;
+  $('vgrid').querySelectorAll('.vfield').forEach(f => f.querySelector('input').setAttribute('aria-label', t('vField', +f.dataset.pos + 1)));
+  $('vMistakes').textContent = t('vMistakes', V.mistakes);
+  $('vMistakes').className = 'msg' + (V.mistakes ? ' bad' : '');
+  $('vDone').hidden = !verifyDone();
+  if (verifyDone()) $('vDoneText').textContent = t('vDoneText', n, V.mistakes);
+}
+function focusNextField(from) {
+  const fields = [...$('vgrid').querySelectorAll('.vfield')];
+  const start = from ? fields.indexOf(from) + 1 : 0;
+  for (let k = 0; k < fields.length; k++) {
+    const f = fields[(start + k) % fields.length];
+    if (!f.classList.contains('ok')) { f.querySelector('input').focus({ preventScroll: !from }); return; }
+  }
+}
+function checkWord(inp) {
+  const f = inp.parentElement, pos = +f.dataset.pos;
+  if (!S.result || f.classList.contains('ok')) return;
+  if (inp.value === S.result.words[pos]) {
+    f.classList.remove('bad'); f.classList.add('ok');
+    inp.readOnly = true; inp.setAttribute('aria-invalid', 'false');
+    V.ok[pos] = true;
+    renderVerifyStatus();
+    if (verifyDone()) {
+      inp.blur();
+      const s = $('safe-1'); if (s) s.checked = true;   // "I checked it word by word"
+      guide(...t('gVerifyOk'));
+      renderStepper();
+      burst();
+    } else focusNextField(f);
+  } else {
+    V.mistakes++;
+    f.classList.remove('bad'); void f.offsetWidth; f.classList.add('bad');
+    inp.setAttribute('aria-invalid', 'true');
+    inp.select();
+    renderVerifyStatus();
+  }
+}
+
+const ac = document.createElement('ul');
+ac.className = 'ac'; ac.id = 'vAc'; ac.setAttribute('role', 'listbox');
+let acItems = [], acSel = 0;
+function acShow(inp) {
+  const q = inp.value.trim().toLowerCase();
+  if (!q || inp.readOnly) { acHide(inp); return; }
+  acItems = BIP39_WORDS.filter(w => w.startsWith(q)).slice(0, 6);
+  acSel = 0;
+  ac.innerHTML = '';
+  if (!acItems.length) {
+    const li = document.createElement('li'); li.className = 'none'; li.textContent = t('vNoMatch'); ac.appendChild(li);
+  }
+  acItems.forEach((w, i) => {
+    const li = document.createElement('li');
+    li.id = 'vAc-' + i; li.setAttribute('role', 'option');
+    li.append(Object.assign(document.createElement('b'), { textContent: w.slice(0, q.length) }), w.slice(q.length));
+    li.addEventListener('mousedown', e => { e.preventDefault(); acPick(inp, w); });
+    ac.appendChild(li);
+  });
+  inp.parentElement.appendChild(ac);
+  inp.setAttribute('aria-expanded', 'true');
+  acMark(inp);
+}
+function acMark(inp) {
+  ac.querySelectorAll('[role=option]').forEach((li, i) => li.setAttribute('aria-selected', String(i === acSel)));
+  if (acItems.length) inp.setAttribute('aria-activedescendant', 'vAc-' + acSel); else inp.removeAttribute('aria-activedescendant');
+}
+function acHide(inp) {
+  ac.remove(); acItems = [];
+  if (inp) { inp.setAttribute('aria-expanded', 'false'); inp.removeAttribute('aria-activedescendant'); }
+}
+function acPick(inp, w) {
+  inp.value = w;
+  acHide(inp);
+  checkWord(inp);
+}
+function acKey(e, inp) {
+  const open = ac.isConnected && acItems.length > 0;
+  if (e.key === 'ArrowDown' && open) { e.preventDefault(); acSel = (acSel + 1) % acItems.length; acMark(inp); }
+  else if (e.key === 'ArrowUp' && open) { e.preventDefault(); acSel = (acSel - 1 + acItems.length) % acItems.length; acMark(inp); }
+  else if ((e.key === 'Enter' || e.key === 'Tab') && open) { e.preventDefault(); acPick(inp, acItems[acSel]); }
+  else if (e.key === 'Enter') { e.preventDefault(); if (BIP39_WORDS.includes(inp.value.trim().toLowerCase())) acPick(inp, inp.value.trim().toLowerCase()); }
+  else if (e.key === 'Escape') acHide(inp);
+}
+
+$('btnToVerify').addEventListener('click', () => { S.maxStep = Math.max(S.maxStep, 5); goto(5); });
+$('btnBackToResult').addEventListener('click', () => goto(4));
+$('btnVerifyShuffle').addEventListener('click', startVerify);
+$('btnNew2').addEventListener('click', () => $('btnNew').click());
+
+// ============================================================
+// Guided tour (spotlight + tooltip)
+// ============================================================
+let tourCleanup = null;
+function runTour(stops, onEnd) {
+  if (tourCleanup) tourCleanup();
+  const shade = document.createElement('div'); shade.className = 'tour-shade';
+  const hole = document.createElement('div'); hole.className = 'tour-hole';
+  const tip = document.createElement('div'); tip.className = 'tour-tip'; tip.setAttribute('role', 'dialog');
+  tip.innerHTML = '<h3></h3><p></p><div class="row"><span class="prog"></span><span class="row" style="margin:0;gap:6px"><button class="btn small" data-a="prev"></button><button class="btn small primary" data-a="next"></button></span></div>';
+  document.body.append(shade, hole, tip);
+  let i = 0;
+  const place = () => {
+    const el = $(stops[i][0]);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const pad = 6;
+    Object.assign(hole.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + pad * 2 + 'px', height: r.height + pad * 2 + 'px' });
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    let top = r.bottom + 14;
+    if (top + th > innerHeight - 10) top = Math.max(10, r.top - th - 14);
+    if (top + th > innerHeight - 10) top = innerHeight - th - 10;
+    const left = Math.min(Math.max(16, r.left), innerWidth - tw - 16);
+    Object.assign(tip.style, { top: top + 'px', left: left + 'px' });
+  };
+  const show = () => {
+    const [id, title, body] = stops[i];
+    tip.querySelector('h3').textContent = title;
+    tip.querySelector('p').textContent = body;
+    tip.querySelector('.prog').textContent = `${i + 1} / ${stops.length}`;
+    const pv = tip.querySelector('[data-a="prev"]'); pv.textContent = t('prev'); pv.disabled = i === 0;
+    tip.querySelector('[data-a="next"]').textContent = i === stops.length - 1 ? t('done') : t('next');
+    const el = $(id);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      if (r.top < 90 || r.bottom > innerHeight - 40) el.scrollIntoView({ block: 'center', behavior: 'instant' in document.documentElement.style ? 'instant' : 'auto' });
+    }
+    requestAnimationFrame(place);
+    tip.querySelector('[data-a="next"]').focus();
+  };
+  const end = () => { tourCleanup(); if (onEnd) onEnd(); };
+  tip.addEventListener('click', e => {
+    const a = e.target.dataset.a;
+    if (a === 'next') { if (i === stops.length - 1) end(); else { i++; show(); } }
+    if (a === 'prev' && i > 0) { i--; show(); }
+  });
+  shade.addEventListener('click', end);
+  const onKey = e => {
+    if (e.key === 'Escape') end();
+    if (e.key === 'ArrowRight') tip.querySelector('[data-a="next"]').click();
+    if (e.key === 'ArrowLeft') tip.querySelector('[data-a="prev"]').click();
+  };
+  document.addEventListener('keydown', onKey);
+  window.addEventListener('resize', place);
+  window.addEventListener('scroll', place, true);
+  tourCleanup = () => {
+    shade.remove(); hole.remove(); tip.remove();
+    document.removeEventListener('keydown', onKey);
+    window.removeEventListener('resize', place);
+    window.removeEventListener('scroll', place, true);
+    tourCleanup = null;
+  };
+  show();
+}
+function mainTour() {
+  if (S.step === 3) { runTour(t('tourDraw')); return; }
+  if (S.step !== 0) goto(0);
+  setTimeout(() => runTour(t('tour'), () => store.set('tour', '1')), 50);
+}
+$('btnTour').addEventListener('click', mainTour);
+$('btnStartTour').addEventListener('click', mainTour);
+
+// ============================================================
+// Header controls
+// ============================================================
+// ============================================================
+// FAQ: BIP39 explained for beginners. Purely educational, never touches generation state.
+// ============================================================
+const FAQ = {
+  pl: {
+    title: 'Jak działa fraza BIP39?',
+    lead: 'Wyjaśnienie dla kogoś, kto nigdy nie miał do czynienia z kryptowalutami. Matematyki nie trzeba znać.',
+    tldrTitle: 'W jednym zdaniu',
+    tldr: 'Fraza to <b>bardzo duża losowa liczba zapisana słowami</b>. Portfel wylicza z niej wszystkie Twoje klucze i adresy, więc <b>kto zna słowa, ten ma dostęp do środków</b>.',
+    flowTitle: 'Od talii do słów w 4 krokach',
+    flow: [
+      ['Losowość', 'Tasujesz talię i klikasz karty. Kolejność kart i czasy kliknięć trafiają do funkcji skrótu SHA-512, która miesza je w ciąg zer i jedynek (bitów). Dla 24 słów bierzemy 256 bitów, jakby rzucić monetą 256 razy.', '0110 1001 1100 …'],
+      ['Suma kontrolna', 'Z tych bitów liczony jest drugi skrót (SHA-256). Kilka jego pierwszych bitów doklejamy na końcu. Działa jak cyfra kontrolna w numerze konta: wyłapuje pomyłki przy przepisywaniu.', '256 + 8 = 264 bity'],
+      ['Krojenie po 11', 'Całość dzielimy na kawałki po 11 bitów. Każdy kawałek to liczba od 0 do 2047.', '264 ÷ 11 = 24 liczby'],
+      ['Słownik', 'Standard BIP39 ma listę dokładnie 2048 angielskich słów. Liczba 0 to <code>abandon</code>, 2047 to <code>zoo</code>. Każdą liczbę zamieniamy na słowo z listy.', '1000 → laptop'],
+    ],
+    anatTitle: 'Anatomia frazy',
+    anat: (w, e, c) => `${w} słów = ${e} bitów losowości + ${c} ${c >= 2 && c <= 4 ? 'bity' : 'bitów'} sumy kontrolnej (żółte) = ${e + c} bitów, po 11 na słowo. Suma kontrolna siedzi w ostatnim słowie, dlatego nie może ono być dowolne.`,
+    words: 'słów',
+    demoTitle: 'Sprawdź sam: 11 bitów → 1 słowo',
+    demoBody: 'Klikaj przełączniki. Każdy bit ma swoją wagę (podpis pod spodem), a suma wag włączonych bitów to numer słowa na liście.',
+    demoNote: 'To tylko ilustracja. Nigdy nie używaj ręcznie ułożonych słów jako prawdziwej frazy.',
+    demoNum: 'Numer', demoWord: 'Słowo', demoZero: 'Same 0', demoMax: 'Same 1',
+    qaTitle: 'Pytania i odpowiedzi',
+    qa: [
+      ['Co oznacza skrót BIP39?', 'BIP to <i>Bitcoin Improvement Proposal</i>, czyli publiczna propozycja standardu. Numer 39 opisuje, jak zamienić losową liczbę na słowa i z powrotem. Dzięki temu frazę z jednego portfela da się odtworzyć w innym, który obsługuje BIP39 (robi to większość portfeli sprzętowych i aplikacji).'],
+      ['Dlaczego słowa, a nie po prostu liczba?', 'Ciąg 256 zer i jedynek łatwo przepisać z błędem. Słowa są krótkie i znane, a lista jest dobrana tak, że <b>pierwsze 4 litery każdego słowa są unikalne</b>. Nawet z samych 4 liter wiadomo, o które słowo chodzi.'],
+      ['Po co suma kontrolna?', 'Gdy pomylisz słowo, portfel zwykle od razu zgłosi błędną frazę, zamiast po cichu otworzyć inny, pusty portfel. Przy 24 słowach suma ma 8 bitów, więc przypadkowo błędna fraza przejdzie kontrolę mniej więcej raz na 256 (przy 12 słowach raz na 16). Z tego samego powodu ostatniego słowa nie da się wybrać dowolnie.'],
+      ['Czy 12 słów wystarczy? Ile to „bezpieczne”?', '12 słów to 128 bitów, czyli około 3,4 × 10<sup>38</sup> możliwości. Nawet przy bilionie prób na sekundę zgadywanie trwałoby około 10<sup>19</sup> lat, prawie miliard razy dłużej, niż istnieje Wszechświat. 24 słowa (256 bitów) to duży zapas. Warunek: słowa muszą być naprawdę losowe.'],
+      ['Po co tu karty UNO i klikanie?', 'Program nie ufa generatorowi losowemu komputera. Źródłem losowości jest fizyczne tasowanie: pełna talia 108 kart UNO może się ułożyć na tyle sposobów, że daje to około 521 bitów, czyli więcej niż potrzebne 256. Dodatkowo czasy Twoich kliknięć (w milisekundach) są łańcuchowo wmieszane w „sól”. Dlatego <b>tej samej frazy nie da się wygenerować drugi raz</b>, nawet klikając te same karty. Zapisz słowa.'],
+      ['Czym różni się „Dodatkowa sól” od hasła BIP39 („25. słowa”)?', 'Sól z kroku 2 miesza się z losowością tylko <b>podczas tworzenia</b> frazy i potem nie jest już potrzebna. Hasło BIP39 (passphrase) to coś innego: opcjonalne hasło wpisywane w portfelu <b>za każdym razem</b> razem ze słowami. Ta strona go nie używa. Jeśli ustawisz je w portfelu, musisz je pamiętać osobno, bo bez niego słowa otworzą inny portfel.'],
+      ['Jak ze słów powstają klucze i adresy?', 'Portfel przepuszcza słowa (i ewentualne hasło) 2048 razy przez funkcję PBKDF2-HMAC-SHA512 i dostaje 512-bitowe „ziarno”. Z niego, według standardu BIP32, wylicza całe drzewo kluczy prywatnych i adresów. Ta strona kończy pracę na słowach, resztę robi portfel.'],
+      ['Czy mogę sam wymyślić 24 słowa?', 'Nie rób tego. Ludzie są przewidywalni, a programy zgadujące hasła dobrze o tym wiedzą. Poza tym ostatnie słowo musi pasować do sumy kontrolnej, więc większość wymyślonych fraz i tak będzie błędna.'],
+      ['Jak przechowywać frazę?', 'Na papierze lub metalu, w bezpiecznym miejscu, z numerami słów. Bez zdjęć, chmury i notatek w telefonie. Każdy, kto zobaczy słowa, może przejąć środki. Jeśli je zgubisz, nikt ich nie odzyska, nawet twórcy portfela.'],
+      ['Czy ta strona coś wysyła do internetu?', 'Nie. Plik ma wbudowaną blokadę sieci (Content-Security-Policy), nie ładuje zewnętrznych skryptów ani czcionek i nigdzie nie zapisuje słów, kart ani soli. Najbezpieczniej: odłącz internet przed generowaniem i zamknij kartę po zapisaniu słów.'],
+    ],
+  },
+  en: {
+    title: 'How does a BIP39 phrase work?',
+    lead: 'An explanation for someone who has never touched crypto. No math required.',
+    tldrTitle: 'In one sentence',
+    tldr: 'The phrase is <b>a very large random number written as words</b>. Your wallet derives all your keys and addresses from it, so <b>whoever knows the words controls the funds</b>.',
+    flowTitle: 'From deck to words in 4 steps',
+    flow: [
+      ['Randomness', 'You shuffle the deck and click the cards. The card order and click timings go into the SHA-512 hash function, which mixes them into a string of zeros and ones (bits). For 24 words we take 256 bits, like flipping a coin 256 times.', '0110 1001 1100 …'],
+      ['Checksum', 'A second hash (SHA-256) is computed from those bits and its first few bits are appended at the end. It works like the check digit in a bank account number: it catches copying mistakes.', '256 + 8 = 264 bits'],
+      ['Cut into 11s', 'Everything is split into chunks of 11 bits. Each chunk is a number from 0 to 2047.', '264 ÷ 11 = 24 numbers'],
+      ['Dictionary', 'The BIP39 standard has a list of exactly 2048 English words. Number 0 is <code>abandon</code>, 2047 is <code>zoo</code>. Each number becomes the word at that position.', '1000 → laptop'],
+    ],
+    anatTitle: 'Anatomy of a phrase',
+    anat: (w, e, c) => `${w} words = ${e} random bits + ${c} checksum bits (yellow) = ${e + c} bits, 11 per word. The checksum lives in the last word, which is why that word cannot be anything you like.`,
+    words: 'words',
+    demoTitle: 'Try it: 11 bits → 1 word',
+    demoBody: 'Flip the switches. Each bit has a weight (shown below it) and the sum of the weights that are on is the word’s number in the list.',
+    demoNote: 'Illustration only. Never use hand-picked words as a real phrase.',
+    demoNum: 'Number', demoWord: 'Word', demoZero: 'All 0', demoMax: 'All 1',
+    qaTitle: 'Questions and answers',
+    qa: [
+      ['What does BIP39 stand for?', 'BIP means <i>Bitcoin Improvement Proposal</i>, a public proposal for a standard. Number 39 describes how to turn a random number into words and back. That is why a phrase from one wallet can be restored in another that supports BIP39 (most hardware wallets and apps do).'],
+      ['Why words and not just a number?', 'A string of 256 zeros and ones is easy to copy wrong. Words are short and familiar, and the list is chosen so that <b>the first 4 letters of every word are unique</b>. Even 4 letters are enough to know which word is meant.'],
+      ['What is the checksum for?', 'If you mistype a word, the wallet will usually reject the phrase straight away instead of silently opening a different, empty wallet. With 24 words the checksum is 8 bits, so a random wrong phrase passes only about once in 256 (once in 16 with 12 words). It is also why the last word cannot be chosen freely.'],
+      ['Are 12 words enough? How “safe” is it?', '12 words are 128 bits, about 3.4 × 10<sup>38</sup> possibilities. Even at a trillion guesses per second, guessing would take about 10<sup>19</sup> years, nearly a billion times the age of the universe. 24 words (256 bits) is a big safety margin. The condition: the words must be truly random.'],
+      ['Why UNO cards and clicking?', 'The program does not trust the computer’s random number generator. Randomness comes from a physical shuffle: a full 108-card UNO deck can be ordered in so many ways that it gives about 521 bits, more than the 256 needed. On top of that, your click timings (in milliseconds) are chained into a “salt”. That is why <b>the same phrase can never be generated twice</b>, even by clicking the same cards. Write the words down.'],
+      ['How is “Extra salt” different from the BIP39 passphrase (“25th word”)?', 'The salt from step 2 is mixed in only <b>while the phrase is created</b> and is not needed afterwards. A BIP39 passphrase is something else: an optional password you type into the wallet <b>every time</b> together with the words. This page does not use one. If you set one in your wallet, remember it separately, because without it the words open a different wallet.'],
+      ['How do the words become keys and addresses?', 'The wallet runs the words (and any passphrase) through PBKDF2-HMAC-SHA512 2048 times and gets a 512-bit “seed”. From that, following the BIP32 standard, it derives a whole tree of private keys and addresses. This page stops at the words; the wallet does the rest.'],
+      ['Can I just make up 24 words?', 'Don’t. People are predictable, and password-guessing programs know it. Also, the last word has to match the checksum, so most made-up phrases are invalid anyway.'],
+      ['How should I store the phrase?', 'On paper or metal, somewhere safe, with the word numbers. No photos, no cloud, no notes app. Anyone who sees the words can take the funds. If you lose them, nobody can recover them, not even the wallet maker.'],
+      ['Does this page send anything to the internet?', 'No. The file has a built-in network block (Content-Security-Policy), loads no external scripts or fonts, and never stores the words, cards or salt. Safest: disconnect from the internet before generating and close the tab once the words are written down.'],
+    ],
+  },
+};
+const fq = k => FAQ[lang][k];
+let anatIdx = 4;
+let demoValue = 1000;
+
+function renderFaq() {
+  $('faqTitle').textContent = fq('title');
+  $('faqLead').textContent = fq('lead');
+  $('faqTldrTitle').textContent = fq('tldrTitle');
+  $('faqTldr').innerHTML = fq('tldr');
+  $('faqFlowTitle').textContent = fq('flowTitle');
+  $('faqFlow').innerHTML = fq('flow').map(([h, p, ex], i) =>
+    `<li><span class="n">${i + 1}</span><b>${h}</b><p>${p}</p><span class="ex">${ex}</span></li>`).join('');
+  $('faqAnatTitle').textContent = fq('anatTitle');
+  $('faqDemoTitle').textContent = fq('demoTitle');
+  $('faqDemoBody').textContent = fq('demoBody');
+  $('faqDemoNote').textContent = fq('demoNote');
+  $('demoNumLbl').textContent = fq('demoNum');
+  $('demoWordLbl').textContent = fq('demoWord');
+  $('demoZero').textContent = fq('demoZero');
+  $('demoMax').textContent = fq('demoMax');
+  $('faqQaTitle').textContent = fq('qaTitle');
+  const open = [...$('faqQa').querySelectorAll('details')].map(d => d.open);
+  $('faqQa').innerHTML = fq('qa').map(([q, a], i) => `<details${open[i] ? ' open' : ''}><summary>${q}</summary><div>${a}</div></details>`).join('');
+  renderAnatomy();
+  renderBitDemo(false);
+}
+function renderAnatomy() {
+  const chips = $('anatChips');
+  chips.innerHTML = '';
+  WORD_COUNTS.forEach((w, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = `${w} ${fq('words')}`;
+    b.setAttribute('aria-pressed', String(i === anatIdx));
+    b.addEventListener('click', () => { anatIdx = i; renderAnatomy(); });
+    chips.appendChild(b);
+  });
+  const ent = ENTROPY_BITS[anatIdx], cs = ent / 32, words = WORD_COUNTS[anatIdx];
+  let h = '';
+  for (let i = 0; i < words; i++) {
+    const last = i === words - 1;
+    h += `<span class="seg">${last ? `<i>${i + 1}</i><span class="cs" style="width:${cs / 11 * 100}%"></span>` : `<i>${i + 1}</i>`}</span>`;
+  }
+  $('anat').innerHTML = h;
+  $('anatLegend').textContent = fq('anat')(words, ent, cs);
+}
+function renderBitDemo(pop) {
+  const box = $('bits11');
+  if (!box.children.length) {
+    for (let i = 10; i >= 0; i--) {
+      const cell = document.createElement('div');
+      const b = document.createElement('button');
+      b.type = 'button'; b.dataset.bit = i;
+      b.addEventListener('click', () => { demoValue ^= 1 << i; renderBitDemo(true); });
+      const s = document.createElement('small'); s.textContent = 1 << i;
+      cell.append(b, s);
+      box.appendChild(cell);
+    }
+  }
+  box.querySelectorAll('button').forEach(b => {
+    const on = (demoValue >> +b.dataset.bit) & 1;
+    b.textContent = on; b.setAttribute('aria-pressed', String(!!on));
+    b.setAttribute('aria-label', `bit ${1 << +b.dataset.bit}: ${on}`);
+  });
+  $('demoNum').textContent = demoValue;
+  const w = $('demoWord');
+  w.textContent = BIP39_WORDS[demoValue] || '?';
+  if (pop) { w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop'); }
+}
+$('demoZero').addEventListener('click', () => { demoValue = 0; renderBitDemo(true); });
+$('demoMax').addEventListener('click', () => { demoValue = 2047; renderBitDemo(true); });
+
+function openFaq() {
+  const d = $('faq');
+  if (d.open) return;
+  if (tourCleanup) tourCleanup();
+  if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+  d.scrollTop = 0;
+}
+function closeFaq() {
+  const d = $('faq');
+  if (typeof d.close === 'function') d.close(); else d.removeAttribute('open');
+}
+$('btnFaq').addEventListener('click', openFaq);
+$('btnWelcomeFaq').addEventListener('click', openFaq);
+$('btnFaqClose').addEventListener('click', closeFaq);
+$('faq').addEventListener('click', e => { if (e.target === e.currentTarget) closeFaq(); });   // click on backdrop
+$('faq').addEventListener('close', () => $('btnFaq').focus());
+
+$('btnLang').addEventListener('click', () => { lang = lang === 'pl' ? 'en' : 'pl'; store.set('lang', lang); applyI18n(); });
+$('btnTheme').addEventListener('click', () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+  store.set('theme', root.dataset.theme);
+});
+{ const th = store.get('theme'); if (th === 'dark' || th === 'light') document.documentElement.dataset.theme = th; }
+
+// ============================================================
+// Init
+// ============================================================
+buildShuffle($('shuffleStage'));
+renderPips();
+applyI18n();
+goto(0);
+if (BIP39_WORDS.length !== 2048) guide('✗', 'BIP39 wordlist missing');
+else if (!window.crypto || !crypto.subtle) guide('✗', t('noCrypto'));
+</script>
+</body>
+</html>
