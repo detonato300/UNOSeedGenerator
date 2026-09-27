@@ -77,3 +77,58 @@ Binarka oryginału: zakładka ["Releases"](https://github.com/Rav3nPL/SeedGenera
 
 - Oryginalny SeedGenerator: [Rav3nPL](https://github.com/Rav3nPL/SeedGenerator). Tipbox autora oryginału: `1Rav3nkMayCijuhzcYemMiPYsvcaiwHni`
 - Port UNO, kreator offline, INIT.py: ten fork.
+
+## Wsparcie (donate)
+
+Jeśli ten fork Ci się przydał, możesz wesprzeć jego rozwój:
+
+| Waluta | Adres |
+|---|---|
+| **Bitcoin (BTC)** | `bc1qvclgxw9tc5gxre2gacegjcakh0rx9l6hgne0uu` |
+| **USDC**, tylko sieć **Ethereum (ERC-20)** | `0x014151fbcfF87039D7D09810f981f9194E335135` |
+
+- **USDC wysyłaj wyłącznie w sieci Ethereum (ERC-20).** Wpłaty w innych sieciach (np. Base, Arbitrum, Polygon, BNB Chain, Tron, Solana) nie są obsługiwane i mogą zostać utracone.
+- USDT nie jest przyjmowany.
+
+- Przed wysłaniem porównaj adres znak po znaku z tym README na GitHubie. Uważaj na złośliwe oprogramowanie podmieniające adresy w schowku.
+- Wpłata jest dobrowolna i nie daje żadnych praw, wsparcia technicznego ani gwarancji (patrz „Zastrzeżenia”).
+- Chcesz wesprzeć autora oryginalnego programu? Jego tipbox jest w sekcji „Autorzy” powyżej.
+
+## Znaki towarowe i prawa autorskie
+
+*Stan na 27.09.2026. Każde twierdzenie poniżej ma podane źródło. Ta sekcja ma charakter informacyjny i nie stanowi porady prawnej.*
+
+### Znak UNO
+
+- **UNO®** jest zarejestrowanym znakiem towarowym **Mattel, Inc.** W rejestrze USPTO: nr rejestracji **1005397** (zgłoszenie nr 73015277), zarejestrowany 25.02.1975 dla gier karcianych (klasa 28), status aktywny, ostatnio odnowiony 14.08.2024 ([USPTO TSDR](https://tsdr.uspto.gov/statusview/sn73015277)).
+- Mattel wymienia UNO wśród swoich marek flagowych ([Mattel: Brand Portfolio](https://corporate.mattel.com/brand-portfolio)).
+- Ten projekt **nie jest powiązany z Mattel, Inc.**, nie jest przez nią sponsorowany, zatwierdzony ani wspierany.
+- Nazwa „UNO” jest tu użyta **wyłącznie opisowo**: mówi, z jaką talią kart działa aplikacja. Nie oznacza pochodzenia ani producenta oprogramowania.
+- Repozytorium **nie zawiera żadnych grafik, logotypów, ilustracji kart ani innych materiałów Mattel**. Karty na ekranie to kolorowe prostokąty z tekstem (np. `5`, `+2`, `STOP`), rysowane w HTML/CSS.
+- Do działania potrzebna jest własna, fizyczna talia. Repozytorium jej nie dostarcza ani nie zastępuje.
+- Pozostałe nazwy (np. Microsoft, Windows, .NET, GitHub, Bitcoin) należą do ich właścicieli i są użyte opisowo.
+
+### Kod oryginalny (Rav3nPL/SeedGenerator)
+
+- Autorem oryginalnego programu (`SeedGenerator/`, `SeedGenerator.sln`, pierwotny `index.html` i algorytm) jest **Rav3nPL**. Prawa autorskie do tego kodu należą do niego.
+- Oryginalne repozytorium **nie ma licencji**: brak pliku LICENSE, a API GitHuba zwraca dla niego `"license": null` ([repozytorium](https://github.com/Rav3nPL/SeedGenerator)).
+- Bez licencji utwór jest domyślnie objęty wyłącznym prawem autorskim. Brak licencji oznacza zasadniczo brak zgody twórcy na używanie, modyfikowanie i udostępnianie kodu ([choosealicense.com: No License](https://choosealicense.com/no-permission/), serwis prowadzony przez GitHub).
+- Regulamin GitHuba (sekcja D.5, wersja z 27.04.2026) daje innym użytkownikom tylko prawo do **przeglądania i forkowania** publicznego repozytorium **w ramach serwisu GitHub** ([GitHub Terms of Service](https://docs.github.com/en/site-policy/github-terms/github-terms-of-service#5-license-grant-to-other-users)). Nie jest to licencja open source.
+- W związku z tym **ten fork nie udziela żadnej licencji** na kod oryginału ani na utwory zależne od niego. Rozpowszechnianie poza GitHubem, modyfikowanie do własnych celów lub użycie komercyjne wymaga zgody autora oryginału.
+- Zalecana droga, zgodnie z choosealicense.com: poprosić autora o dodanie licencji (np. przez issue w oryginalnym repozytorium).
+
+### Zmiany w tym forku
+
+- Nowe pliki i zmiany (`uno-seed-studio.html`, port UNO w `index.html`, `INIT.py`, `deck.json`, ten README) są opublikowane do wglądu i do weryfikacji, **bez żadnej gwarancji** (patrz sekcja „Zastrzeżenia”).
+- Ponieważ `index.html` jest zmodyfikowaną wersją kodu Rav3nPL, a oryginał nie ma licencji, **licencja tego forka zostanie ustalona dopiero po wyjaśnieniu licencji oryginału**.
+
+### Lista słów BIP39
+
+- Angielska lista 2048 słów BIP39 (wbudowana w `index.html`, `uno-seed-studio.html` oraz `SeedGenerator/Resources/english.txt`) jest **identyczna** z oficjalnym plikiem [`bip-0039/english.txt`](https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt) z repozytorium `bitcoin/bips`. Zgodność sprawdzono sumą SHA-256 wszystkich trzech kopii.
+- Specyfikacja [BIP-0039](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) (autorzy: Marek Palatinus, Pavol Rusnak, Aaron Voisine, Sean Bowe) jest udostępniona na **licencji MIT** („This BIP falls under the MIT License.”).
+
+### Kryptografia
+
+- SHA-256 i SHA-512 to publiczne standardy (FIPS 180-4). W wersjach HTML liczy je wbudowane w przeglądarkę Web Crypto API (`crypto.subtle`), bez zewnętrznych bibliotek.
+
+> **English summary:** UNO® is a registered trademark of Mattel, Inc. (USPTO Reg. No. 1005397, card games, live). This project is not affiliated with, sponsored or endorsed by Mattel; the name only describes the compatible card deck, and no Mattel artwork or assets are included. The original SeedGenerator is by Rav3nPL and its repository has no license (GitHub API: `license: null`); GitHub's Terms (D.5) only allow viewing and forking within GitHub, so this fork grants no license to the original code or derivatives. The BIP39 English wordlist is byte-for-byte identical (SHA-256 verified) to `bitcoin/bips` `bip-0039/english.txt`; BIP-0039 is MIT-licensed. Not legal advice.
